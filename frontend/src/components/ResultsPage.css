@@ -1,0 +1,123 @@
+.results-page {
+    font-family: Arial, sans-serif;
+    background-color: #e6f7ff;
+    color: #003366;
+    padding: 20px;
+    height: 100vh;
+    width: 100vw;
+    box-sizing: border-box;
+  }
+  
+  h2 {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  
+  .ranking-list {
+    margin-bottom: 20px;
+  }
+  
+  .ranking-item {
+    padding: 12px;
+    background-color: #ffffff;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  
+  .ranking-item:hover {
+    background-color: #f0f0f0;
+  }
+  
+  .submission-details {
+    padding: 16px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    margin-top: 20px;
+  }
+  
+  .criteria-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px;
+    background-color: #f9f9f9;
+    border-radius: 6px;
+    margin-bottom: 6px;
+  }
+  
+/* src/components/ResultsPage.css */
+
+.results-page {
+    font-family: Arial, sans-serif;
+    background-color: #e6f7ff;
+    color: #003366;
+    padding: 20px;
+    height: 100vh;
+    width: 100vw;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  h2 {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  
+  .ranking-list {
+    margin-bottom: 20px;
+  }
+  
+  .ranking-item {
+    padding: 12px;
+    background-color: #ffffff;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  
+  .ranking-item:hover {
+    background-color: #f0f0f0;
+  }
+
+  .ranking-item.active {
+    background-color: #d1eaff;
+    border-left: 4px solid #0099cc;
+  }  
+  
+  .submission-details {
+    padding: 16px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    margin-top: 20px;
+    width: 80%;
+  }
+  
+  .criteria-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px;
+    background-color: #f9f9f9;
+    border-radius: 6px;
+    margin-bottom: 6px;
+  }
+  
+  /* Chart Styling */
+  canvas {
+    margin-top: 20px;
+    max-width: 500px;
+  }

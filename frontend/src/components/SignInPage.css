@@ -1,0 +1,49 @@
+/* src/components/SignInPage.css */
+.sign-in-page {
+    font-family: Arial, sans-serif;
+    background-color: #e6f7ff;
+    color: #003366;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    width: 100vw; /* Take full width */
+    margin: 0;
+  }
+  
+  h2 {
+    font-size: 2rem;
+    margin-bottom: 20px;
+  }
+  
+  form {
+    display: flex;
+    flex-direction: column;
+    width: 320px;
+  }
+  
+  input {
+    padding: 12px;
+    margin-bottom: 12px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    width: 100%; /* Ensure inputs stretch to fill */
+    box-sizing: border-box;
+  }
+  
+  button {
+    background-color: #0099cc;
+    color: white;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    width: 100%; /* Ensure button fills width */
+  }
+  
+  button:hover {
+    background-color: #0077a3;
+  }
+  
