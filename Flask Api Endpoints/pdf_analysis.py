@@ -7,10 +7,10 @@ from pdf2image import convert_from_path
 
 app = Flask(__name__)
 
-# API Key for OpenRouter
-API_KEY = "REPLACE-WITH-YOUR-API-KEY"
+#API Key for OpenRouter
+API_KEY = "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"
 
-# Function to convert a PDF page to Base64 Image URL
+#Function to convert a PDF page to Base64 Image URL
 def convert_pdf_to_images(pdf_path):
     images = convert_from_path(pdf_path)  #Convert all pages to images
     image_data_urls = []
@@ -19,7 +19,7 @@ def convert_pdf_to_images(pdf_path):
         image_path = f"temp_page_{i + 1}.png"
         image.save(image_path, "PNG")  #Save image temporarily
 
-        # Convert to Base64
+        #Convert to Base64
         with open(image_path, "rb") as img_file:
             base64_image = base64.b64encode(img_file.read()).decode("utf-8")
             image_data_urls.append(f"data:image/png;base64,{base64_image}")
@@ -42,7 +42,7 @@ def analyze_pdf():
     os.remove(pdf_path)  # Cleanup PDF after conversion
 
     # Customisable prompt
-    TEXT = "Extract all the details in this page line by line if it is text and tell what the picture shows/depicts if the image has any."
+    TEXT = "Extract all the details in this page line by line if it is text and and describe images if any in detail. Don't include any information irrelevant to the main page content."
 
     responses = []
 
