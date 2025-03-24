@@ -9,8 +9,11 @@ import { z } from "zod";
 import * as minio from "minio";
 import express from "express";
 import axios from "axios";
+import fetch from "node-fetch";
+import FormData from "form-data";
 
 const fs = require('fs');
+const router = express.Router();
 
 // Configure MinIO client
 const minioClient = new minio.Client({
@@ -320,6 +323,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: 'Error deleting file' });
     }
   });
+
+  // export async function registerRoutes(app: Express): Promise<Server> {
+    router.post("/submit", upload.single("file"), async (req, res) => {
+      try {
+        if (!req.file) {
+          return res.status(400).json({ error: "No file provided" });
+        }
+    
+        const { fileType, theme, criteria } = req.body;
+        if (!fileType || !theme || !criteria) {
+          return res.status(400).json({ error: "Missing required fields" });
+        }
+    
+        const formData = new FormData();
+        formData.append("file", req.file.buffer, req.file.originalname);
+        formData.append("fileType", fileType);
+        formData.append("theme", theme);
+        formData.append("criteria", criteria);
+    
+        const response = await fetch("http://127.0.0.1:5000/submit", {
+          method: "POST",
+          body: formData,
+        });
+    
+        if (!response.ok) {
+          const errorText = await response.text();
+          return res.status(response.status).json({ error: "Submission failed", details: errorText });
+        }
+    
+        return res.status(200).json({ message: "File submitted successfully" });
+      } catch (error) {
+        console.error("Error submitting file:", error);
+        return res.status(500).json({ error: "Internal server error" });
+      }
+    });
 
   const httpServer = createServer(app);
   return httpServer;
