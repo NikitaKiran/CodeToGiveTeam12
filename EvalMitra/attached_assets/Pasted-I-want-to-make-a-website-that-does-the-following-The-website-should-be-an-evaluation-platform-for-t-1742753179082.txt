@@ -1,0 +1,21 @@
+I want to make a website that does the following:
+The website should be an evaluation platform for teachers to evaluate hackathon submissions made by students. These submissions could be in any format - text, image, audio, video, pdf, docx. There is a separate student portal (which you DO NOT have to implement, where students will upload their submission in the format - <team_name>_<hackathon_name>.{format} where format is the submission format of submission (.txt, .png, etc). These submissions will be stored in min.io, in buckets for each format of submission - 'text-bucket', 'audio-bucket', 'image-bucket', 'video-bucket', 'pdf-bucket', 'docx-bucket'. min.io has already been setup locally at localhost:9100 and the credentials are -  access key is minioadmin and the secret key is minioadmin. Do not use MongoDB.
+
+The teacher should be able to do the following:
+Add a hackathon: This would include the name of the hackathon, the theme of the hackathon, a small description and evaluation criteria that the teacher will provide to evaluate the submissions.
+Format of the criteria submitted : The criteria has to be submitted in this format  - name, description, and weightage. There should be an option to add a new criteria and all added criteria should be visible. 
+Storage : Once the hackathon is created, all the hackathon information should be stored in min.io in json format in the bucket called ‘hackathon’, with a key as the hackathon id. This key can be used to retrieve information about the hackathon.
+When the teacher chooses to, he/she can click on an option ‘Evaluate’ for a certain hackathon, which should take the teacher to another page. 
+
+After this, all the submissions from all the buckets in the following list - ['text-bucket', 'audio-bucket', 'image-bucket', 'video-bucket', 'pdf-bucket', 'docx-bucket'] which are of the form <team_name>_<hackathon_name>.<format>, where the hackathon_name matches the current hackathon name, should be downloaded one by one and the following processing should be done:
+First, if the submission is from the <format>-bucket, where format is not text, it should be given to the respective flask API point and a text will be returned by the API. This text (string) should be added to a list. For now replace the API call with dummy text. 
+If the submission is from the text-bucket, convert the text to a string and add it to the above list.
+Delete the file after this and retrieve the next submission from min.io.
+After all files have been converted to a string, the list created above should now be fed to another flask API which returns a ranked order with scores for each submission and a  justification for each submission’s score. Suggestion:  Comment out the API call, I will replace it with an actual one later. Create a dictionary with the submission names and dummy values for the score and justifications.
+
+Return to the evaluate page where they will be displayed.
+Here, first group statistics like number of submissions and whatever you feel relevant should be displayed. Following this, the submissions in ranked order should be present, with only each one's name, final score and rank visible. You can display the top five, and allow a scroll down or next button to see the rest. There can also be a filter to see only top <number> submissions by rank as entered by the evaluator.
+Each submission should have an option to ‘drill-down’, that is open up a certain submission to a new level, where more analytics are present such as - summary of the submission, the criteria wise score, keywords of the submission, and pros and cons of the solution. This can be computed by fetching the file from min.io and calling a flask API call on it (Again, I will replace this later).
+Add visualizations as you find necessary.
+
+Try to make the UI as intuitive as possible. Please clarify what might seem unclear.
