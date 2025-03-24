@@ -7,17 +7,20 @@ import { fileExtensionSchema } from "@shared/schema";
 import { insertFileSchema } from "@shared/schema";
 import { z } from "zod";
 import * as minio from "minio";
+import express from "express";
+import axios from "axios";
+
+const fs = require('fs');
 
 // Configure MinIO client
 const minioClient = new minio.Client({
   endPoint: process.env.MINIO_ENDPOINT || 'localhost',
   port: parseInt(process.env.MINIO_PORT || '9100'),
-  useSSL: process.env.MINIO_USE_SSL === 'true',
+  useSSL: process.env.MINIO_USE_SSL === 'false',
   accessKey: process.env.MINIO_ACCESS_KEY || 'minioadmin',
   secretKey: process.env.MINIO_SECRET_KEY || 'minioadmin'
 });
 
-// Mock MinIO adapter for development without MinIO
 class MockMinioAdapter {
   private fileBuffers: Map<string, { buffer: Buffer, metadata: any }>;
   private buckets: Set<string>;
@@ -158,6 +161,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         req.file.size,
         { 'Content-Type': req.file.mimetype }
       );
+
+      // Prepare form data for API call
+      const formData = new FormData();
+      formData.append('file', fs.createReadStream(filePath));
+
+      // Send the file to the corresponding API
+      const response = await fetch(apiUrl, {
+          method: 'POST',
+          body: formData,
+          headers: formData.getHeaders()
+      });
+
+      const apiResponse = await response.json();
+      console.log('API Response:', apiResponse);
+
+      // Cleanup: remove local file after upload & API call
+      fs.unlinkSync(filePath);
+      
+      res.json({ message: 'File uploaded & sent to API', apiResponse });
 
       // Save file info to storage
       const fileData = {

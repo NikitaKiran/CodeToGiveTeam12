@@ -1,0 +1,9 @@
+# MinIO
+MINIO_ENDPOINT=localhost:9100
+MINIO_ACCESS_KEY=minioadmin
+MINIO_SECRET_KEY=minioadmin
+MINIO_BUCKET=submissions
+
+# Flask
+FLASK_DEBUG=True
+FLASK_RUN_PORT=5000

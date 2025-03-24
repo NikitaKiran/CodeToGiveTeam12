@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  minio:
+    image: minio/minio
+    container_name: minio
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin
+    command: server /data --address ":9100" --console-address ":9101"
+    ports:
+      - "9100:9100"  # MinIO API
+      - "9101:9101"  # MinIO Console
+    volumes:
+      - minio-data:/data
+    restart: unless-stopped
+
+  flask-app:
+    build: .
+    container_name: flask-app
+    ports:
+      - "5001:5000"
+    environment:
+      - MINIO_ENDPOINT=http://minio:9100
+      - MINIO_ACCESS_KEY=your-access-key
+      - MINIO_SECRET_KEY=your-secret-key
+      - MINIO_BUCKET=submissions
+      - FLASK_RUN_HOST=0.0.0.0  # Ensure Flask is accessible
+    depends_on:
+      - minio
+    restart: unless-stopped
+
+volumes:
+  minio-data:

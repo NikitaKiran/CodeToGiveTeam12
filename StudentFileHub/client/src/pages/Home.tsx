@@ -89,7 +89,7 @@ const Home: React.FC = () => {
               <FileViewer file={selectedFile} />
             </div>
             
-            <FileDetails file={selectedFile} />
+            {/* <FileDetails file={selectedFile} /> */}
           </div>
         </div>
       </main>

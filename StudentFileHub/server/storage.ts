@@ -69,7 +69,7 @@ export class MemStorage implements IStorage {
   }
 
   async deleteFile(id: number): Promise<void> {
-    this.files.delete(id);
+    // this.files.delete(id);
   }
 
   async getFilesByType(fileType: string): Promise<File[]> {

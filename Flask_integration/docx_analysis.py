@@ -1,53 +1,44 @@
-import base64
-import json
-import requests
 import os
+import json
+import base64
 import subprocess
-from flask import Flask, request, jsonify
+import requests
 from pdf2image import convert_from_path
 
-app = Flask(__name__)
+# Update your API key for OpenRouter here
+API_KEY = "REPLACE-WITH-YOUR-API-KEY"
 
-#API Key for OpenRouter
-API_KEY = "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"
-
-#Function to convert DOCX to PDF
 def convert_docx_to_pdf(docx_path, pdf_path):
     subprocess.run(["unoconv", "-f", "pdf", "-o", pdf_path, docx_path], check=True)
 
-#Function to convert PDF pages to Base64 Image URLs
 def convert_pdf_to_images(pdf_path):
     images = convert_from_path(pdf_path)
     image_data_urls = []
-
     for i, image in enumerate(images):
         image_path = f"temp_page_{i + 1}.png"
         image.save(image_path, "PNG")
         with open(image_path, "rb") as img_file:
             base64_image = base64.b64encode(img_file.read()).decode("utf-8")
             image_data_urls.append(f"data:image/png;base64,{base64_image}")
-
         os.remove(image_path)
-
     return image_data_urls
 
-@app.route("/analyze_docx", methods=["POST"])
-def analyze_docx():
-    if "docx" not in request.files:
-        return jsonify({"error": "No DOCX file provided"}), 400
-
-    docx_file = request.files["docx"]
-    docx_path = f"./{docx_file.filename}"
+def analyze_docx_file(docx_path):
     pdf_path = docx_path.replace(".docx", ".pdf").replace(".doc", ".pdf")
-    docx_file.save(docx_path)  
+    # Convert DOCX to PDF
     convert_docx_to_pdf(docx_path, pdf_path)
-    os.remove(docx_path)  
+
+    # Convert PDF pages to images
     image_data_urls = convert_pdf_to_images(pdf_path)
-    os.remove(pdf_path) 
-    TEXT = "Extract all details in this page line by line if text, and describe images if any in detail. Don't include any information irrelevant to the main page content."
+
+    # Clean up the temporary files
+    os.remove(docx_path)
+    os.remove(pdf_path)
+
+    TEXT = ("Extract all details in this page line by line if it is text, "
+            "and describe images if any in detail. Don't include any information irrelevant to the main content.")
 
     responses = []
-
     for image_data_url in image_data_urls:
         response = requests.post(
             url="https://openrouter.ai/api/v1/chat/completions",
@@ -65,7 +56,6 @@ def analyze_docx():
                 ],
             }),
         )
-
         try:
             result = response.json()
             message = result["choices"][0]["message"]["content"]
@@ -73,7 +63,4 @@ def analyze_docx():
         except json.JSONDecodeError:
             responses.append("Error processing this page.")
 
-    return jsonify({"extracted_text": responses})
-
-if __name__ == "__main__":
-    app.run(debug=True)
+    return {"extracted_text": responses}

@@ -19,6 +19,7 @@ export const files = pgTable("files", {
   path: text("path").notNull(),
   uploadedAt: timestamp("uploaded_at").defaultNow().notNull(),
   userId: integer("user_id").references(() => users.id),
+  // isDeleted: boolean("is_deleted").default(false).notNull(),
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({
@@ -29,6 +30,7 @@ export const insertUserSchema = createInsertSchema(users).pick({
 export const insertFileSchema = createInsertSchema(files).omit({
   id: true,
   uploadedAt: true,
+  isDeleted: true,
 });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
