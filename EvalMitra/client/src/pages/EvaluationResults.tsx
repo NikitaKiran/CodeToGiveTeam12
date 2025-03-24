@@ -158,20 +158,14 @@ export default function EvaluationResults() {
         <div className="mt-4 sm:mt-0 flex space-x-3">
           <div>
             <label htmlFor="filter-count" className="block text-sm font-medium text-gray-700">Show top</label>
-            <Select 
-              value={filterCount.toString()} 
-              onValueChange={(value) => setFilterCount(parseInt(value))}
-            >
-              <SelectTrigger className="w-20" id="filter-count">
-                <SelectValue placeholder="10" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="5">5</SelectItem>
-                <SelectItem value="10">10</SelectItem>
-                <SelectItem value="20">20</SelectItem>
-                <SelectItem value="100">All</SelectItem>
-              </SelectContent>
-            </Select>
+            <input
+              type="number"
+              value={filterCount.toString()}
+              onChange={(e) => setFilterCount(parseInt(e.target.value) || 0)}
+              placeholder="Enter number"
+              className="w-20 border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              min="1"
+            />
           </div>
           <Button className="self-end" disabled={hackathon.status !== 'completed'}>
             Export Results

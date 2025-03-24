@@ -1,4 +1,5 @@
 import React from "react";
+import WordCloud from "react-wordcloud";
 import {
   BarChart,
   Bar,
@@ -92,9 +93,9 @@ export default function GroupAnalytics({ submissions }: GroupAnalyticsProps) {
 
   // Convert to array and sort by frequency
   const keywordFrequency = Array.from(keywordsMap.entries())
-    .map(([keyword, count]) => ({ keyword, count }))
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 5); // Take top 5
+  .map(([keyword, count]) => ({ text: keyword, value: count })) // Rename keys
+  .sort((a, b) => b.value - a.value)
+  .slice(0, 5); // Take top 5
 
   // Extract strengths and weaknesses for comparison
   const strengthsCount = evaluatedSubmissions.reduce((sum, s) => sum + (s.strengths?.length || 0), 0);
@@ -166,31 +167,25 @@ export default function GroupAnalytics({ submissions }: GroupAnalyticsProps) {
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle className="text-gradient">Top Keywords</CardTitle>
-            <CardDescription>
-              Most frequently mentioned keywords across submissions
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  layout="vertical"
-                  data={keywordFrequency}
-                  margin={{ top: 20, right: 30, left: 40, bottom: 5 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis type="number" />
-                  <YAxis dataKey="keyword" type="category" />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="count" name="Frequency" fill="#0088FE" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
+  <CardHeader>
+    <CardTitle className="text-gradient">Top Keywords</CardTitle>
+    <CardDescription>
+      Most frequently mentioned keywords across submissions
+    </CardDescription>
+  </CardHeader>
+  <CardContent>
+    <div className="h-80">
+      <WordCloud
+        words={keywordFrequency}
+        options={{
+          rotations: 2,
+          rotationAngles: [0, 90],
+          fontSizes: [20, 60],
+        }}
+      />
+    </div>
+  </CardContent>
+</Card>
       </div>
 
       <Card>
