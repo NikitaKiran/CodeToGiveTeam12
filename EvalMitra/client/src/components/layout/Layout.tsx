@@ -18,7 +18,7 @@ export default function Layout({ children }: LayoutProps) {
       />
 
       {/* Main Content */}
-      <div className="flex flex-col flex-1 min-h-screen lg:pl-64">
+      <div className={`flex flex-col flex-1 min-h-screen transition-all duration-300 ${sidebarOpen ? 'lg:pl-64' : 'lg:pl-16'}`}>
         {/* Top Navigation */}
         <header className="bg-white shadow-sm sticky top-0 z-20">
           <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
@@ -42,7 +42,7 @@ export default function Layout({ children }: LayoutProps) {
                 <button className="p-1 flex text-sm rounded-full focus:outline-none">
                   <span className="sr-only">Open user menu</span>
                   <div className="w-8 h-8 rounded-full bg-primary-200 flex items-center justify-center text-primary-700">
-                    TE
+
                   </div>
                 </button>
               </div>
