@@ -1,5 +1,5 @@
 import React from "react";
-import WordCloud from "react-wordcloud";
+// import WordCloud from "react-wordcloud";
 import {
   BarChart,
   Bar,
@@ -38,6 +38,76 @@ export default function GroupAnalytics({ submissions }: GroupAnalyticsProps) {
     );
   }
 
+  const firstWithCriteria = evaluatedSubmissions.find(s => s.criteriaScores !== null);
+  const criteriaNames = firstWithCriteria && firstWithCriteria.criteriaScores 
+    ? Object.keys(firstWithCriteria.criteriaScores) 
+    : [];
+    const fixedScoreRanges = [
+      { name: "9-10", min: 9, max: 10, count: 0 },
+      { name: "7-8", min: 7, max: 8, count: 0 },
+      { name: "5-6", min: 5, max: 6, count: 0 },
+      { name: "3-4", min: 3, max: 4, count: 0 },
+      { name: "< 3", min: 0, max: 2, count: 0 },
+    ];
+
+  // const criteriaScoreRanges = criteriaNames.map(criteria => {
+  //   const maxScore = Math.max(...evaluatedSubmissions.map(s => s.criteriaScores?.[criteria] || 0));
+  //   const rangeSize = Math.max(1, Math.ceil(maxScore / 4));
+  //   return {
+  //     criteria,
+  //     ranges: [
+  //       { name: `${maxScore - rangeSize + 1}-${maxScore}`, min: maxScore - rangeSize + 1, max: maxScore, count: 0 },
+  //       { name: `${maxScore - 2 * rangeSize + 1}-${maxScore - rangeSize}`, min: maxScore - 2 * rangeSize + 1, max: maxScore - rangeSize, count: 0 },
+  //       { name: `${maxScore - 3 * rangeSize + 1}-${maxScore - 2 * rangeSize}`, min: maxScore - 3 * rangeSize + 1, max: maxScore - 2 * rangeSize, count: 0 },
+  //       { name: `< ${maxScore - 3 * rangeSize}`, min: 0, max: maxScore - 3 * rangeSize, count: 0 },
+  //     ]
+  //   };
+  // });
+    const criteriaScoreRanges = criteriaNames.map(criteria => ({
+      criteria,
+      ranges: JSON.parse(JSON.stringify(fixedScoreRanges)), // Deep copy to avoid modifying original
+    }));
+
+  // evaluatedSubmissions.forEach(submission => {
+  //   criteriaScoreRanges.forEach(({ criteria, ranges }) => {
+  //     const score = submission.criteriaScores?.[criteria] || 0;
+  //     const range = ranges.find(r => score >= r.min && score <= r.max);
+  //     if (!range && score >= 0) {
+  //       ranges[ranges.length - 1].count++; // Place the score in the last range if no match
+  //     }
+  //     else if(range) range.count++;
+  //   });
+    //   (range)range.count++;
+    // });
+    evaluatedSubmissions.forEach(submission => {
+      criteriaScoreRanges.forEach(({ criteria, ranges }) => {
+        const score = submission.criteriaScores?.[criteria] || 0;
+        const range = ranges.find(r => score >= r.min && score <= r.max);
+        if (range) range.count++;
+      });
+    });
+
+  const stackedBarData = criteriaScoreRanges.map(({ criteria, ranges }) => {
+    const entry: any = { criteria };
+    ranges.forEach(range => {
+      entry[range.name] = range.count;
+    });
+    return entry;
+  });
+
+  const topRankersPerCriteria = criteriaNames.map(criteria => {
+    const topSubmissions = [...evaluatedSubmissions]
+      .sort((a, b) => (b.criteriaScores?.[criteria] || 0) - (a.criteriaScores?.[criteria] || 0))
+      .slice(0, 5);
+
+    return {
+      criteria,
+      data: topSubmissions.map(submission => ({
+        name: submission.teamName,
+        score: submission.criteriaScores?.[criteria] || 0,
+      }))
+    };
+  });
   // Calculate score distribution
   const scoreRanges = [
     { name: '90-100', range: [90, 100], count: 0 },
@@ -55,11 +125,6 @@ export default function GroupAnalytics({ submissions }: GroupAnalyticsProps) {
     if (range) range.count++;
   });
 
-  // Get all criteria from the first submission that has criteriaScores
-  const firstWithCriteria = evaluatedSubmissions.find(s => s.criteriaScores !== null);
-  const criteriaNames = firstWithCriteria && firstWithCriteria.criteriaScores 
-    ? Object.keys(firstWithCriteria.criteriaScores) 
-    : [];
 
   // Calculate average score per criteria
   const criteriaAverages = criteriaNames.map(criteria => {
@@ -106,6 +171,15 @@ export default function GroupAnalytics({ submissions }: GroupAnalyticsProps) {
     { name: 'Weaknesses', value: weaknessesCount, fill: '#f44336' }
   ];
 
+  // const sortedSubmissions = [...evaluatedSubmissions].sort((a, b) => b.score - a.score);
+  // const topSubmissions = sortedSubmissions.slice(0, 5).map(submission => {
+  //   const formatted = { submissionId: `Sub ${submission.id}` };
+  //   criteriaNames.forEach(criteria => {
+  //     formatted[criteria] = submission.criteriaScores?.[criteria] || 0;
+  //   });
+  //   return formatted;
+  // });
+
   // Colors for the charts
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
   const CRITERIA_COLORS = ['#FF8A00', '#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
@@ -140,86 +214,54 @@ export default function GroupAnalytics({ submissions }: GroupAnalyticsProps) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
-          <CardHeader>
-            <CardTitle className="text-gradient">Criteria Performance</CardTitle>
-            <CardDescription>
-              Average scores for each evaluation criteria
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <RadarChart outerRadius={90} data={criteriaAverages}>
-                  <PolarGrid />
-                  <PolarAngleAxis dataKey="criteria" />
-                  <PolarRadiusAxis domain={[0, 10]} />
-                  <Radar
-                    name="Average Score"
-                    dataKey="average"
-                    stroke="#FF8A00"
-                    fill="#FF8A00"
-                    fillOpacity={0.6}
-                  />
-                </RadarChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-  <CardHeader>
-    <CardTitle className="text-gradient">Top Keywords</CardTitle>
-    <CardDescription>
-      Most frequently mentioned keywords across submissions
-    </CardDescription>
-  </CardHeader>
-  <CardContent>
-    <div className="h-80">
-      <WordCloud
-        words={keywordFrequency}
-        options={{
-          rotations: 2,
-          rotationAngles: [0, 90],
-          fontSizes: [20, 60],
-        }}
-      />
-    </div>
-  </CardContent>
-</Card>
-      </div>
-
-      <Card>
         <CardHeader>
-          <CardTitle className="text-gradient">Strengths vs Weaknesses</CardTitle>
-          <CardDescription>
-            Comparison of identified strengths and weaknesses
-          </CardDescription>
+          <CardTitle className="text-gradient">Criteria-wise Score Distribution</CardTitle>
+          <CardDescription>Distribution of scores across different criteria</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={strengthsWeaknessesPie}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                >
-                  {strengthsWeaknessesPie.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.fill} />
-                  ))}
-                </Pie>
+              <BarChart data={stackedBarData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="criteria" />
+                <YAxis />
                 <Tooltip />
                 <Legend />
-              </PieChart>
+                      {fixedScoreRanges.map((range, rangeIdx) => (
+                      <Bar 
+                        key={rangeIdx} 
+                        dataKey={range.name} 
+                        fill={`hsl(${rangeIdx * 60}, 70%, 50%)`} 
+                      />
+                    ))}
+              </BarChart>
             </ResponsiveContainer>
           </div>
         </CardContent>
-      </Card>
+        </Card>
+        {topRankersPerCriteria.map(({ criteria, data }) => (
+        <Card key={criteria}>
+          <CardHeader>
+            <CardTitle className="text-gradient">Top 5 Submissions for {criteria}</CardTitle>
+            <CardDescription>Highest scoring submissions in {criteria}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={data}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="score" fill="#0088FE" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+      </div>
     </div>
   );
 }
