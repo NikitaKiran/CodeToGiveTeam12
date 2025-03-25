@@ -1,5 +1,5 @@
 import React from "react";
-import WordCloud from "react-wordcloud";
+
 import {
   BarChart,
   Bar,
@@ -175,14 +175,7 @@ export default function GroupAnalytics({ submissions }: GroupAnalyticsProps) {
   </CardHeader>
   <CardContent>
     <div className="h-80">
-      <WordCloud
-        words={keywordFrequency}
-        options={{
-          rotations: 2,
-          rotationAngles: [0, 90],
-          fontSizes: [20, 60],
-        }}
-      />
+      
     </div>
   </CardContent>
 </Card>

@@ -17,10 +17,14 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Submission } from "@/lib/minio-client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 interface SubmissionAnalyticsProps {
   submission: Submission;
 }
+
+
 
 export default function SubmissionAnalytics({ submission }: SubmissionAnalyticsProps) {
   if (!submission.evaluated || !submission.criteriaScores) {
@@ -75,31 +79,39 @@ export default function SubmissionAnalytics({ submission }: SubmissionAnalyticsP
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-gradient">Performance Radar</CardTitle>
+            <CardTitle className="text-gradient">Edit Scores</CardTitle>
             <CardDescription>
-              Visual representation of performance across criteria
+              Manually update the criteria wise scores (out of 10)
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="h-72">
-              <ResponsiveContainer width="100%" height="100%">
-                <RadarChart outerRadius={90} data={criteriaForRadar}>
-                  <PolarGrid />
-                  <PolarAngleAxis dataKey="criteria" />
-                  <PolarRadiusAxis angle={30} domain={[0, 10]} />
-                  <Radar
-                    name="Score"
-                    dataKey="score"
-                    stroke="#FF8A00"
-                    fill="#FF8A00"
-                    fillOpacity={0.6}
-                  />
-                  <Tooltip />
-                  <Legend />
-                </RadarChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
+          <CardContent className="px-6 py-4">
+  <div className="space-y-6">
+    {Object.entries(submission.criteriaScores).map(([criteria, score]) => (
+      <div key={criteria} className="flex items-center justify-between">
+        <label className="text-gray-700 font-medium w-1/3">{criteria}</label>
+        <Input
+          className="w-1/2 text-center bg-blue-50 border-blue-200 hover:bg-blue-100 focus:ring-blue-300"
+          type="number"
+          min="0"
+          max="10"
+          value={score}
+          // onChange={(e) => setEditedScores({
+          //   ...editedScores,
+          //   [criteria]: parseFloat(e.target.value)
+          // })}
+        />
+      </div>
+    ))}
+    <div className="flex justify-center space-x-4 mt-6">
+      <Button variant="outline" className="w-1/3 bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100">
+        Cancel
+      </Button>
+      <Button className="w-1/3 bg-blue-500 text-white hover:bg-blue-600">
+        Save Changes
+      </Button>
+    </div>
+  </div>
+</CardContent>
         </Card>
       </div>
 
