@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, timestamp, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, timestamp, boolean, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -19,7 +19,6 @@ export const files = pgTable("files", {
   path: text("path").notNull(),
   uploadedAt: timestamp("uploaded_at").defaultNow().notNull(),
   userId: integer("user_id").references(() => users.id),
-  // isDeleted: boolean("is_deleted").default(false).notNull(),
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({
@@ -30,7 +29,6 @@ export const insertUserSchema = createInsertSchema(users).pick({
 export const insertFileSchema = createInsertSchema(files).omit({
   id: true,
   uploadedAt: true,
-  isDeleted: true,
 });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -62,3 +60,27 @@ export const fileExtensionSchema = z.object({
     }
   ),
 });
+
+/ Criteria schema
+export const criteriaSchema = z.object({
+  name: z.string(),
+  description: z.string(),
+  weightage: z.number(),
+});
+
+export type Criteria = z.infer<typeof criteriaSchema>;
+export type Hackathon = typeof hackathons.$inferSelect;
+
+// Hackathon schema
+export const hackathons = pgTable("hackathons", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  theme: text("theme").notNull(),
+  description: text("description").notNull(),
+  criteria: jsonb("criteria").notNull().$type<Criteria[]>(),
+  status: text("status").notNull().default("not_started"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+
+

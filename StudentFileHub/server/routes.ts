@@ -1,4 +1,5 @@
 import type { Express } from "express";
+import express from "express";
 import { createServer, type Server } from "http";
 import { storage as fileStorage } from "./storage";
 import multer from "multer";
@@ -7,12 +8,11 @@ import { fileExtensionSchema } from "@shared/schema";
 import { insertFileSchema } from "@shared/schema";
 import { z } from "zod";
 import * as minio from "minio";
-import express from "express";
-import axios from "axios";
 import fetch from "node-fetch";
 import FormData from "form-data";
-import fs from "fs";
-// const fs = require('fs');
+import { storage } from "./storage";
+import { ZodError } from "zod";
+
 const router = express.Router();
 
 // Configure MinIO client
@@ -24,6 +24,7 @@ const minioClient = new minio.Client({
   secretKey: process.env.MINIO_SECRET_KEY || 'minioadmin'
 });
 
+// Mock MinIO adapter for development without MinIO
 class MockMinioAdapter {
   private fileBuffers: Map<string, { buffer: Buffer, metadata: any }>;
   private buckets: Set<string>;
@@ -122,6 +123,7 @@ async function ensureBucketsExist() {
 export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize MinIO buckets
   await ensureBucketsExist();
+  
 
   // API route to upload a file
   app.post('/api/files/upload', upload.single('file'), async (req, res) => {
@@ -164,25 +166,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         req.file.size,
         { 'Content-Type': req.file.mimetype }
       );
-
-      // Prepare form data for API call
-      const formData = new FormData();
-      formData.append('file', fs.createReadStream(filePath));
-
-      // Send the file to the corresponding API
-      const response = await fetch(apiUrl, {
-          method: 'POST',
-          body: formData,
-          headers: formData.getHeaders()
-      });
-
-      const apiResponse = await response.json();
-      console.log('API Response:', apiResponse);
-
-      // Cleanup: remove local file after upload & API call
-      fs.unlinkSync(filePath);
-      
-      res.json({ message: 'File uploaded & sent to API', apiResponse });
 
       // Save file info to storage
       const fileData = {
@@ -324,41 +307,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // export async function registerRoutes(app: Express): Promise<Server> {
-    router.post("/submit", upload.single("file"), async (req, res) => {
-      try {
-        if (!req.file) {
-          return res.status(400).json({ error: "No file provided" });
-        }
-    
-        const { fileType, theme, criteria } = req.body;
-        if (!fileType || !theme || !criteria) {
-          return res.status(400).json({ error: "Missing required fields" });
-        }
-    
-        const formData = new FormData();
-        formData.append("file", req.file.buffer, req.file.originalname);
-        formData.append("fileType", fileType);
-        formData.append("theme", theme);
-        formData.append("criteria", criteria);
-    
-        const response = await fetch("http://127.0.0.1:5000/submit", {
-          method: "POST",
-          body: formData,
-        });
-    
-        if (!response.ok) {
-          const errorText = await response.text();
-          return res.status(response.status).json({ error: "Submission failed", details: errorText });
-        }
-    
-        return res.status(200).json({ message: "File submitted successfully" });
-      } catch (error) {
-        console.error("Error submitting file:", error);
-        return res.status(500).json({ error: "Internal server error" });
+  // Get a hackathon by ID
+  //changed from router to app
+  router.get('/hackathons/:id', async (req, res) => {
+    try {
+      console.log("in the get request to get hacakthons.")
+      const id = parseInt(req.params.id);
+      console.log("id",id)
+      const hackathon = await storage.getHackathon(id);
+  
+      
+      if (!hackathon) {
+        return res.status(404).json({ message: 'Hackathon not found' });
       }
-    });
+      
+      res.json(hackathon);
+    } catch (error) {
+      res.json({error})
+      // console.log(res, error);
+    }
+  });
 
+  router.get('/test', (req, res) => {
+    console.log("in test")
+    res.json({ message: "API is working!" });
+  });
+  
+
+
+  
+  // export async function registerRoutes(app: Express): Promise<Server> {
+  router.post("/submit", upload.single("file"), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No file provided" });
+      }
+  
+      const { fileType, theme, criteria } = req.body;
+      if (!fileType || !theme || !criteria) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+  
+      const formData = new FormData();
+      formData.append("file", req.file.buffer, req.file.originalname);
+      formData.append("fileType", fileType);
+      formData.append("theme", theme);
+      formData.append("criteria", criteria);
+  
+      const response = await fetch("http://127.0.0.1:5000/submit", {
+        method: "POST",
+        body: formData,
+      });
+  
+      if (!response.ok) {
+        const errorText = await response.text();
+        return res.status(response.status).json({ error: "Submission failed", details: errorText });
+      }
+  
+      return res.status(200).json({ message: "File submitted successfully" });
+    } catch (error) {
+      console.error("Error submitting file:", error);
+      return res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.use("/api", router);
+  // export default router;
   const httpServer = createServer(app);
   return httpServer;
+  // export default router;
 }
