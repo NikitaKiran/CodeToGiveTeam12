@@ -128,6 +128,7 @@ export class MemStorage implements IStorage {
     // If status is "in_progress", generate dummy submissions for demonstration purposes
     if (status === "in_progress") {
       await this.createDummySubmissions(id);
+      //need to call
     }
     
     return hackathon;

@@ -11,8 +11,8 @@ import express from "express";
 import axios from "axios";
 import fetch from "node-fetch";
 import FormData from "form-data";
-
-const fs = require('fs');
+import fs from "fs";
+// const fs = require('fs');
 const router = express.Router();
 
 // Configure MinIO client

@@ -41,6 +41,27 @@ const Home: React.FC = () => {
     setSelectedFile(file);
   };
 
+  const handleSubmit = async () => {
+    if (!selectedFile?.id) return;
+
+    try {
+      const response = await apiRequest(`/api/files/${selectedFile.id}/submit`, {
+        method: 'POST'
+      });
+
+      toast({
+        title: "Success",
+        description: "File submitted successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to submit file",
+        variant: "destructive",
+      });
+    }
+  };
+  
   return (
     <div className="bg-gray-50 text-gray-900 min-h-screen flex flex-col">
       <Header />
@@ -77,7 +98,17 @@ const Home: React.FC = () => {
                   <span className="material-icons text-sm mr-1">cloud_upload</span>
                   Upload to Storage
                 </button>
+                <button
+                  onClick={handleSubmit}
+                  disabled={!selectedFile}
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
+                >
+                  <span className="material-icons text-sm mr-1">send</span>
+                  Submit
+                </button>
               </div>
+
+
               
               <RecentUploads onSelectFile={handleFileClick} />
             </div>
