@@ -156,17 +156,7 @@ export default function EvaluationResults() {
           </div>
         </div>
         <div className="mt-4 sm:mt-0 flex space-x-3">
-          <div>
-            <label htmlFor="filter-count" className="block text-sm font-medium text-gray-700">Show top</label>
-            <input
-              type="number"
-              value={filterCount.toString()}
-              onChange={(e) => setFilterCount(parseInt(e.target.value) || 0)}
-              placeholder="Enter number"
-              className="w-20 border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              min="1"
-            />
-          </div>
+      
           <Button className="self-end" disabled={hackathon.status !== 'completed'}>
             Export Results
           </Button>
@@ -234,20 +224,35 @@ export default function EvaluationResults() {
         </TabsContent>
         
         <TabsContent value="submissions" className="mt-0">
-          <div className="bg-white shadow sm:rounded-lg overflow-hidden">
-            <div className="px-4 py-5 border-b border-gray-200 sm:px-6">
-              <h3 className="text-lg leading-6 font-medium text-gray-900">
-                Ranked Submissions
-              </h3>
-            </div>
-            
-            <SubmissionList 
-              hackathonId={hackathonId} 
-              onSelectSubmission={(id) => navigate(`/submissions/${id}`)}
-              filterCount={filterCount}
-            />
-          </div>
-        </TabsContent>
+  <div className="bg-white shadow sm:rounded-lg overflow-hidden">
+    <div className="px-4 py-5 border-b border-gray-200 sm:px-6 flex justify-between items-center">
+      <h3 className="text-lg leading-6 font-medium text-gray-900">
+        Ranked Submissions
+      </h3>
+      <div className="flex items-center space-x-2">
+        <label htmlFor="filter-count" className="text-sm font-medium text-gray-700">
+          Show top
+        </label>
+        <input
+          type="number"
+          id="filter-count"
+          value={filterCount.toString()}
+          onChange={(e) => setFilterCount(parseInt(e.target.value) || 0)}
+          placeholder="Enter number"
+          className="w-20 border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          min="1"
+        />
+      </div>
+    </div>
+
+    <SubmissionList 
+      hackathonId={hackathonId} 
+      onSelectSubmission={(id) => navigate(`/submissions/${id}`)}
+      filterCount={filterCount}
+    />
+  </div>
+</TabsContent>
+
       </Tabs>
       
       {/* Submission Detail Dialog */}
