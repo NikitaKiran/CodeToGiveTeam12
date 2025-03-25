@@ -214,60 +214,9 @@ export default function GroupAnalytics({ submissions }: GroupAnalyticsProps) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
-          <CardHeader>
-            <CardTitle className="text-gradient">Criteria Performance</CardTitle>
-            <CardDescription>
-              Average scores for each evaluation criteria
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <RadarChart outerRadius={90} data={criteriaAverages}>
-                  <PolarGrid />
-                  <PolarAngleAxis dataKey="criteria" />
-                  <PolarRadiusAxis domain={[0, 10]} />
-                  <Radar
-                    name="Average Score"
-                    dataKey="average"
-                    stroke="#FF8A00"
-                    fill="#FF8A00"
-                    fillOpacity={0.6}
-                  />
-                </RadarChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-  <CardHeader>
-    <CardTitle className="text-gradient">Top Keywords</CardTitle>
-    <CardDescription>
-      Most frequently mentioned keywords across submissions
-    </CardDescription>
-  </CardHeader>
-  <CardContent>
-    <div className="h-80">
-      {/* <WordCloud
-        words={keywordFrequency}
-        options={{
-          rotations: 2,
-          rotationAngles: [0, 90],
-          fontSizes: [20, 60],
-        }}
-      /> */}
-    </div>
-  </CardContent>
-</Card>
-      </div>
-
-      <Card>
         <CardHeader>
-          <CardTitle className="text-gradient">Strengths vs Weaknesses</CardTitle>
-          <CardDescription>
-            Comparison of identified strengths and weaknesses
-          </CardDescription>
+          <CardTitle className="text-gradient">Criteria-wise Score Distribution</CardTitle>
+          <CardDescription>Distribution of scores across different criteria</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="h-80">
