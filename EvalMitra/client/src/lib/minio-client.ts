@@ -89,3 +89,9 @@ export async function getSubmissionAnalysis(id: number): Promise<SubmissionAnaly
   const response = await apiRequest('GET', `/api/submissions/${id}/analysis`);
   return response.json();
 }
+
+// Update submission details
+export async function updateSubmission(id: number, data: Partial<Submission>): Promise<Submission> {
+  const response = await apiRequest('PATCH', `/api/submissions/${id}`, data);
+  return response.json();
+}
