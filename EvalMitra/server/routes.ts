@@ -148,6 +148,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       handleError(res, error);
     }
   });
+  
 
   // Get a specific submission
   apiRouter.get('/submissions/:id', async (req: Request, res: Response) => {

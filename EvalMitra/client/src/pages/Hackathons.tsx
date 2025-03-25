@@ -28,10 +28,10 @@ export default function Hackathons() {
     
     try {
       await startEvaluation(evaluatingHackathon.id);
-      toast({
-        title: "Evaluation started",
-        description: `Processing submissions for ${evaluatingHackathon.name}`,
-      });
+      // toast({
+      //   title: "Evaluation started",
+      //   description: `Processing submissions for ${evaluatingHackathon.name}`,
+      // });
       setEvaluatingHackathon(null);
       navigate(`/evaluations/${evaluatingHackathon.id}`);
       refetch();

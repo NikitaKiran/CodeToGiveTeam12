@@ -278,6 +278,6 @@ export default function GroupAnalytics({ submissions }: GroupAnalyticsProps) {
           </Card>
         ))}
       </div>
-    </div>
+
   );
 }
