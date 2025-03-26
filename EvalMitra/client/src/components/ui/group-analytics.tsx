@@ -25,7 +25,7 @@ export default function GroupAnalytics({ submissions }: GroupAnalyticsProps) {
   // ... (previous data preparation code remains the same)
   // export default function GroupAnalytics({ submissions }: GroupAnalyticsProps) {
       // Only use evaluated submissions with scores
-      const evaluatedSubmissions = submissions.filter(s => s.evaluated && s.score !== null);
+      const evaluatedSubmissions = submissions.filter(s => s.score !== null);
       
       if (evaluatedSubmissions.length === 0) {
         return (

@@ -194,9 +194,9 @@ def evaluate_submission_logic(solution, theme, criteria):
         return criteria_string
 
     criteria_string = create_criteria_string(criteria)
-    prompt = f'''You are an evaluator for hackathon submissions.
+    prompt = f'''You are an expert evaluator for hackathon submissions.
 The theme of the hackathon is {theme}. You need to judge based on the following criteria: {criteria_string}.
-Return the evaluation result in this format: [Tags: (main keywords from the solution), Summary of the main aspects of the solution: , Pros of solution: [pro1, pro2...] , Cons of solution: [con1, con2...] , Score for <criteria1>:[score, justification with examples], Score for <criteria2>:[score, justification with examples]].
+Return the evaluation result in this format: [Tags: (main keywords from the solution), Summary of the main aspects of the solution: , Pros of solution: [pro1, pro2...] , Cons of solution: [con1, con2...] , Score for <criteria1>:[x/10, justification with examples], Score for <criteria2>:[y/10, justification with examples]].
 The solution is {solution}'''
 
     response = together_client.chat.completions.create(
@@ -228,6 +228,7 @@ The solution is {solution}'''
             tags_line = ans.split("Tags: ")[1].split("\n")[0]
             tags_line = tags_line.strip('()')
             tags = [tag.strip() for tag in tags_line.split(',')]
+            tags = [tag.strip(')') for tag in tags]
             
             # Get summary
             summary = ans.split("Summary of the main aspects of the solution: ")[1].split("\n")[0].strip(" .")

@@ -168,7 +168,7 @@ export default function SubmissionDetail() {
                         </div>
                         <p className="text-gray-700 text-sm">
                           
-                            {submission.justification}
+                       {submission.justification[criteria]}
                         </p>
                       </div>
                     </div>

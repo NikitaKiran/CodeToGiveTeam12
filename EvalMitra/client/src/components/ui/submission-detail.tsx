@@ -154,7 +154,7 @@ export default function SubmissionDetail({ submissionId, onClose }: SubmissionDe
         <div>
           <h4 className="text-base font-medium text-gray-900 mb-2">Evaluation Justification</h4>
           <p className="text-sm text-gray-600 break-words">
-            {submission.justification || 'No justification provided'}
+         
           </p>
         </div>
       </div>
