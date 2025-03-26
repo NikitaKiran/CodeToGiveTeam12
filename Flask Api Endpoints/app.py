@@ -195,7 +195,7 @@ def evaluate_submission_logic(solution, theme, criteria):
     criteria_string = create_criteria_string(criteria)
     prompt = f'''You are an evaluator for hackathon submissions.
 The theme of the hackathon is {theme}. You need to judge based on the following criteria: {criteria_string}.
-Return the evaluation result in this format: [Tags: (main keywords from the solution),Summary of the main aspects of the solution: , Pros of solution: , Cons of solution: , Score for <criteria1>:[score, justification with examples], Score for <criteria2>:[score, justification with examples]].
+Return the evaluation result in this format: [Tags: (main keywords from the solution), Summary of the main aspects of the solution: , Pros of solution: [pro1, pro2...] , Cons of solution: [con1, con2...] , Score for <criteria1>:[score, justification with examples], Score for <criteria2>:[score, justification with examples]].
 The solution is {solution}'''
 
     response = together_client.chat.completions.create(
@@ -220,26 +220,40 @@ The solution is {solution}'''
 
     def parse_ans(ans):
         try:
-            # Get the line that contains the tags.
+            # Remove the square brackets at the start and end
+            ans = ans.strip('[]')
+            
+            # Get tags
             tags_line = ans.split("Tags: ")[1].split("\n")[0]
+            tags_line = tags_line.strip('()')
             tags = [tag.strip() for tag in tags_line.split(',')]
             
-            # Get summary, pros, cons using similar splitting.
-            summary = ans.split("Summary of the main aspects of the solution: ")[1].split("\n")[0]
-            pros = ans.split("Pros of solution: ")[1].split("\n")[0]
-            cons = ans.split("Cons of solution: ")[1].split("\n")[0]
+            # Get summary
+            summary = ans.split("Summary of the main aspects of the solution: ")[1].split("\n")[0].strip(" .")
             
-            # For scores, split on "Score for " (this will give a list with one element per criterion)
+            # Get pros
+            pros_line = ans.split("Pros of solution: ")[1].split("\n")[0].strip()
+            pros = pros_line.strip('[]').split(',')
+            
+            # Get cons
+            cons_line = ans.split("Cons of solution: ")[1].split("\n")[0].strip()
+            cons = cons_line.strip('[]').split(',')
+            
+            # Parse scores
             scores_section = ans.split("Score for ")[1:]
             score_dict = {}
             for score in scores_section:
-                # Each score is expected to be in the format "Criterion: [score, justification...]"
+                # Split on first colon to separate key and value
                 key = score.split(":")[0].strip()
-                value = score.split(":", 1)[1].strip()
-                score_dict[key] = value
+                # Remove newline and trailing comma
+                value_str = score.split(":", 1)[1].split("\n")[0].strip(" ,")
+                # Evaluate the value
+                score_dict[key] = value_str.strip('[]').split(',', 1)
+            
             return tags, summary, pros, cons, score_dict
+
         except Exception as e:
-            raise Exception("Error parsing AI response: " + str(e))
+            raise Exception(f"Error parsing AI response: {str(e)}")
 
     try:
         tags, summary, pros, cons, score_dict = parse_ans(ans)
@@ -249,8 +263,8 @@ The solution is {solution}'''
     result_json = {
         "tags": tags,
         "summary": summary.strip(),
-        "pros": pros.strip(),
-        "cons": cons.strip(),
+        "pros": pros,
+        "cons": cons,
         "scores": score_dict
     }
     return result_json, None, None
@@ -299,41 +313,121 @@ def analyze_image():
         return jsonify({"error": err}), 500
     return jsonify({"extracted_text": solution})
 
-# New endpoint that ties together file analysis and evaluation
+# # New endpoint that ties together file analysis and evaluation
+# @app.route("/submit", methods=["POST"])
+# def submit():
+#     # Expecting:
+#     #   - a file in request.files with key "file"
+#     #   - form field "fileType" (one of: ppt, pdf, docx, image)
+#     #   - form fields "theme" and "criteria" (criteria as a JSON string)
+#     print('HIIIII')
+#     if "file" not in request.files:
+#         return jsonify({"error": "No file provided"}), 400
+#     file_obj = request.files["file"]
+
+#     file_type = request.form.get("fileType")
+#     theme = request.form.get("theme")
+#     criteria_str = request.form.get("criteria")
+#     if not file_type or not theme or not criteria_str:
+#         return jsonify({"error": "Missing required fields: fileType, theme, or criteria"}), 400
+#     try:
+#         criteria = json.loads(criteria_str)
+#     except Exception as e:
+#         return jsonify({"error": "Invalid criteria JSON", "details": str(e)}), 400
+
+#     # Process the file based on type and extract text
+#     solution_text, err = process_file(file_obj, file_type)
+#     if err:
+#         return jsonify({"error": err}), 500
+
+#     # Call evaluation logic using the extracted text as the solution
+#     eval_result, eval_err, raw_response = evaluate_submission_logic(solution_text, theme, criteria)
+#     if eval_err:
+#         return jsonify({"error": eval_err, "raw_response": raw_response}), 500
+
+#     # Store the evaluation result in Minio
+#     name_without_ext = os.path.splitext(file_obj.filename)[0]
+#     file_name = f"evaluation_{name_without_ext}.json"
+#     result_bytes = json.dumps(eval_result).encode("utf-8")
+#     try:
+#         minio_client.put_object(
+#             RESULTS_BUCKET,
+#             file_name,
+#             data=io.BytesIO(result_bytes),
+#             length=len(result_bytes),
+#             content_type="application/json"
+#         )
+#     except Exception as e:
+#         return jsonify({"error": "Failed to store result in Minio", "details": str(e)}), 500
+
+#     return jsonify(eval_result)
+
 @app.route("/submit", methods=["POST"])
 def submit():
     # Expecting:
-    #   - a file in request.files with key "file"
-    #   - form field "fileType" (one of: ppt, pdf, docx, image)
-    #   - form fields "theme" and "criteria" (criteria as a JSON string)
+    # - a file in request.files with key "file"
+    # - form field "fileType" (one of: ppt, pdf, docx, image)
+    # - form fields "theme" and "criteria" (criteria as a JSON string)
+    # - optional: teamName 
+    
     if "file" not in request.files:
         return jsonify({"error": "No file provided"}), 400
+    
     file_obj = request.files["file"]
-
     file_type = request.form.get("fileType")
     theme = request.form.get("theme")
     criteria_str = request.form.get("criteria")
+    team_name = file_obj.filename.split('_')[0]
+    hackathon_id = request.form.get("hackathonId")
+    
     if not file_type or not theme or not criteria_str:
         return jsonify({"error": "Missing required fields: fileType, theme, or criteria"}), 400
+    
     try:
         criteria = json.loads(criteria_str)
     except Exception as e:
         return jsonify({"error": "Invalid criteria JSON", "details": str(e)}), 400
-
+    
     # Process the file based on type and extract text
     solution_text, err = process_file(file_obj, file_type)
     if err:
         return jsonify({"error": err}), 500
-
+    
     # Call evaluation logic using the extracted text as the solution
     eval_result, eval_err, raw_response = evaluate_submission_logic(solution_text, theme, criteria)
     if eval_err:
         return jsonify({"error": eval_err, "raw_response": raw_response}), 500
-
-    # Store the evaluation result in Minio
+    
+    
+    # Construct the new JSON structure
+    submission_data = {
+        "hackathonId": hackathon_id,
+        "teamName": team_name,
+        "originalFile": file_obj.filename,
+        "fileType": file_type,
+        "justification": {},  # This can be populated from eval_result
+        "criteriaScores": {},
+        "oldCriteriaScores": {},  # Optional: you might want to implement a way to track previous scores
+        "summary": eval_result.get('summary', ''),
+        "keywords": eval_result.get('tags', []),
+        "strengths": eval_result.get('pros', ''),
+        "weaknesses": eval_result.get('cons', ''),
+        "processed": True,
+        "evaluated": True
+    }
+    
+    # Populate criteriaScores and justification
+    if eval_result.get('scores'):
+        for criterion, score_info in eval_result['scores'].items():
+           
+                submission_data['criteriaScores'][criterion.lower()] = int(score_info[0].split('/')[0])
+                submission_data['justification'][criterion.lower()] = score_info[1]
+          
+  
     name_without_ext = os.path.splitext(file_obj.filename)[0]
-    file_name = f"evaluation_{name_without_ext}.json"
-    result_bytes = json.dumps(eval_result).encode("utf-8")
+    file_name = f"submission_{name_without_ext}_{submission_data['hackathonId']}.json"
+    result_bytes = json.dumps(submission_data).encode("utf-8")
+    
     try:
         minio_client.put_object(
             RESULTS_BUCKET,
@@ -344,8 +438,9 @@ def submit():
         )
     except Exception as e:
         return jsonify({"error": "Failed to store result in Minio", "details": str(e)}), 500
+    
+    return jsonify(submission_data)
 
-    return jsonify(eval_result)
 
 # --------------------------
 # Run the Application

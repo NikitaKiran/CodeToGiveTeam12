@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, jsonb, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, jsonb, timestamp, date } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -9,10 +9,6 @@ export const users = pgTable("users", {
   password: text("password").notNull(),
 });
 
-export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
-});
 
 // Criteria schema
 export const criteriaSchema = z.object({
@@ -30,6 +26,9 @@ export const hackathons = pgTable("hackathons", {
   theme: text("theme").notNull(),
   description: text("description").notNull(),
   criteria: jsonb("criteria").notNull().$type<Criteria[]>(),
+  start_date: date("start_date").notNull(),  // Changed from timestamp() to date()
+  end_date: date("end_date").notNull(),      // Changed from timestamp() to date()
+  cutoff_score: jsonb("cutoff_score").notNull().$type<number[]>(), // Ensure it's an array of numbers
   status: text("status").notNull().default("not_started"),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -39,6 +38,9 @@ export const insertHackathonSchema = createInsertSchema(hackathons).pick({
   theme: true,
   description: true,
   criteria: true,
+  start_date: true,
+  end_date: true,
+  cutoff_score: true,
   status: true,
 });
 
@@ -52,8 +54,9 @@ export const submissions = pgTable("submissions", {
   content: text("content"),
   score: integer("score"),
   rank: integer("rank"),
-  justification: text("justification"),
+  justification: jsonb("justification").$type<Record<string, string>>(),
   criteriaScores: jsonb("criteria_scores").$type<Record<string, number>>(),
+  oldCriteriaScores: jsonb("old_criteria_scores").$type<Record<string, number>>(),
   summary: text("summary"),
   keywords: jsonb("keywords").$type<string[]>(),
   strengths: jsonb("strengths").$type<string[]>(),
@@ -62,12 +65,40 @@ export const submissions = pgTable("submissions", {
   evaluated: boolean("evaluated").default(false),
 });
 
+// export interface Submission {
+//   id: number;
+//   hackathonId: number;
+//   teamName: string;
+//   originalFile: string;
+//   fileType: string;
+//   content: string | null;
+//   score: number | null;
+//   rank: number | null;
+//   justification: Record<string, string> | null;
+//   criteriaScores: Record<string, number>  | null;
+//   oldCriteriaScores: Record<string, number>| null;
+//   summary: string | null;
+//   keywords: string[] | null;
+//   strengths: string[] | null;
+//   weaknesses: string[] | null;
+//   processed: boolean;
+//   evaluated: boolean;
+// }
+
 export const insertSubmissionSchema = createInsertSchema(submissions).pick({
   hackathonId: true,
   teamName: true,
   originalFile: true,
   fileType: true,
   content: true,
+  justification: true,
+  criteriaScores: true,
+  summary: true,
+  keywords: true,
+  strengths: true,
+  weaknesses: true,
+  processed: true,
+  evaluated: true,
 });
 
 export const updateSubmissionSchema = createInsertSchema(submissions).pick({
@@ -83,9 +114,7 @@ export const updateSubmissionSchema = createInsertSchema(submissions).pick({
   evaluated: true,
 });
 
-// Types export
-export type InsertUser = z.infer<typeof insertUserSchema>;
-export type User = typeof users.$inferSelect;
+
 
 export type InsertHackathon = z.infer<typeof insertHackathonSchema>;
 export type Hackathon = typeof hackathons.$inferSelect;

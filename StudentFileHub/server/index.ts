@@ -61,7 +61,7 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
   }
 
   // Start the server on port 5000.
-  const port = 5000;
+  const port = 5002;
   server.listen(
     {
       port,

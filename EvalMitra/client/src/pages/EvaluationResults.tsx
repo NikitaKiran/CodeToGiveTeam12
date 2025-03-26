@@ -11,11 +11,13 @@ import SubmissionList from '@/components/ui/submission-list';
 import SubmissionDetail from '@/components/ui/submission-detail';
 import GroupAnalytics from '@/components/ui/group-analytics';
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { X } from "lucide-react"; // Import cross icon
 
 export default function EvaluationResults() {
   const { id } = useParams();
   const [, navigate] = useLocation();
   const [filterCount, setFilterCount] = useState<number>(10);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedSubmissionId, setSelectedSubmissionId] = useState<number | null>(null);
   
   // Parse the ID from the URL
@@ -230,6 +232,33 @@ export default function EvaluationResults() {
         Ranked Submissions
       </h3>
       <div className="flex items-center space-x-2">
+        {/* Category Filter Buttons */}
+       
+
+<div className="flex space-x-2">
+  {["low", "mid", "high"].map((category) => {
+    const isSelected = selectedCategories.includes(category);
+    return (
+      <button
+        key={category}
+        className={`flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-all border-2
+          ${isSelected ? "bg-blue-500 text-white border-blue-600 shadow-md" 
+                      : "bg-white text-gray-700 border-gray-300 hover:bg-blue-100 hover:border-blue-400"}
+          h-9`}
+        onClick={() =>
+          setSelectedCategories((prev) =>
+            isSelected ? prev.filter((c) => c !== category) : [...prev, category]
+          )
+        }
+      >
+        {category.charAt(0).toUpperCase() + category.slice(1)}
+        {isSelected && <X className="ml-2 h-4 w-4 text-white hover:text-gray-200" />}
+      </button>
+    );
+  })}
+</div>
+
+        {/* Filter Count Input */}
         <label htmlFor="filter-count" className="text-sm font-medium text-gray-700">
           Show top
         </label>
@@ -245,13 +274,18 @@ export default function EvaluationResults() {
       </div>
     </div>
 
+    {/* Submission List with Category Filter */}
     <SubmissionList 
       hackathonId={hackathonId} 
       onSelectSubmission={(id) => navigate(`/submissions/${id}`)}
       filterCount={filterCount}
+      midcutoff={hackathon.cutoff_score[0]}
+      highcutoff={hackathon.cutoff_score[1]}
+      categories={selectedCategories}
     />
   </div>
 </TabsContent>
+
 
       </Tabs>
       

@@ -45,9 +45,28 @@ export const supportedExtensions: Record<FileFormat, string[]> = {
   docx: [".doc", ".docx"]
 };
 
+// export function getFormatDescription(format: FileFormat): string {
+//   return `Supported formats: ${supportedExtensions[format].join(', ')}`;
+// }
 export function getFormatDescription(format: FileFormat): string {
-  return `Supported formats: ${supportedExtensions[format].join(', ')}`;
+  switch (format) {
+    case "text":
+      return ".txt,.md,.csv";
+    case "audio":
+      return ".mp3,.wav,.aac";
+    case "image":
+      return ".jpg,.jpeg,.png,.gif,.svg";
+    case "video":
+      return ".mp4,.mov,.avi,.mkv";
+    case "pdf":
+      return ".pdf";
+    case "docx":
+      return ".doc,.docx";
+    default:
+      return "";
+  }
 }
+
 
 export function formatFileSize(bytes: number): string {
   if (bytes === 0) return '0 Bytes';

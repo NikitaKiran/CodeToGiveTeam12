@@ -1,16 +1,24 @@
 import { useQuery } from '@tanstack/react-query';
 import { getSubmissionsByHackathon } from '@/lib/minio-client';
+import { sub } from 'date-fns';
 
 interface SubmissionListProps {
   hackathonId: number;
   onSelectSubmission: (submissionId: number) => void;
   filterCount?: number;
+  categories?: string[];
+  midcutoff: number;
+  highcutoff: number;
 }
 
 export default function SubmissionList({ 
   hackathonId, 
+
   onSelectSubmission,
-  filterCount = 10
+  filterCount = 10,
+  categories = [],
+  midcutoff,
+  highcutoff,
 }: SubmissionListProps) {
   const { data: submissions, isLoading, error } = useQuery({
     queryKey: [`/api/hackathons/${hackathonId}/submissions`],
@@ -74,7 +82,22 @@ export default function SubmissionList({
   const sortedSubmissions = [...submissions]
     .filter(s => s.evaluated)
     .sort((a, b) => (a.rank || 999) - (b.rank || 999))
-    .slice(0, parseInt(filterCount.toString()));
+    .slice(0, parseInt(filterCount.toString())).filter(submission => {
+      if (categories.length === 0) {
+        return true;
+      }
+      if (submission.criteriaScores) {
+        const score = submission.score;
+        if (score && score >= highcutoff) {
+          return categories.includes('high');
+        } else if (score && score >= midcutoff) {
+          return categories.includes('mid');
+        } else {
+          return categories.includes('low');
+        }
+      }
+      return false;
+    });
   
   return (
     <ul className="divide-y divide-gray-200">

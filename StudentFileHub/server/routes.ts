@@ -338,6 +338,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // export async function registerRoutes(app: Express): Promise<Server> {
   router.post("/submit", upload.single("file"), async (req, res) => {
+    console.log('Halooo');
     try {
       if (!req.file) {
         return res.status(400).json({ error: "No file provided" });
@@ -353,7 +354,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       formData.append("fileType", fileType);
       formData.append("theme", theme);
       formData.append("criteria", criteria);
-  
+      console.log(1234566)
       const response = await fetch("http://127.0.0.1:5000/submit", {
         method: "POST",
         body: formData,

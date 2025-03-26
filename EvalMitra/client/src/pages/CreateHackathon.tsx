@@ -11,6 +11,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import CriteriaForm from '@/components/ui/criteria-form';
 import { Criteria } from '@shared/schema';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
+import { CalendarIcon } from 'lucide-react';
 
 export default function CreateHackathon() {
   const [, navigate] = useLocation();
@@ -19,7 +24,10 @@ export default function CreateHackathon() {
   const [formData, setFormData] = useState({
     name: '',
     theme: '',
-    description: ''
+    description: '',
+    start_date: undefined as Date | undefined,
+    end_date: undefined as Date | undefined,
+    cutoff_score:[0, 0]
   });
   
   const [criteriaList, setCriteriaList] = useState<Criteria[]>([]);
@@ -60,6 +68,38 @@ export default function CreateHackathon() {
       toast({
         title: "Validation error",
         description: "Please add at least one evaluation criterion.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Check date validation
+    if (!formData.start_date || !formData.end_date) {
+      toast({
+        title: "Validation error",
+        description: "Please select start and end dates.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Validate date order
+    if (formData.start_date > formData.end_date) {
+      toast({
+        title: "Validation error",
+        description: "Start date must be before end date.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Validate cutoff scores
+    const medium = formData.cutoff_score[0];
+    const high = formData.cutoff_score[1];
+    if (high <= medium || high > 100 || medium <= 0) {
+      toast({
+        title: "Validation error",
+        description: "Invalid cutoff scores. Ensure: 0 < Medium < High ≤ 100",
         variant: "destructive"
       });
       return;
@@ -140,6 +180,104 @@ export default function CreateHackathon() {
                   className="mt-1"
                   required
                 />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Start Date</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !formData.start_date && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {formData.start_date ? (
+                          format(formData.start_date, "PPP")
+                        ) : (
+                          <span>Pick a date</span>
+                        )}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        selected={formData.start_date}
+                        onSelect={(date) => setFormData({ ...formData, start_date: date })}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+
+                <div>
+                  <Label>End Date</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !formData.end_date && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {formData.end_date ? (
+                          format(formData.end_date, "PPP")
+                        ) : (
+                          <span>Pick a date</span>
+                        )}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        selected={formData.end_date}
+                        onSelect={(date) => setFormData({ ...formData, end_date: date })}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-6">
+                
+                <div>
+                  <Label htmlFor="cutoff-medium">Cutoff Score for Medium (in %)</Label>
+                  <Input
+                    id="cutoff-medium"
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={formData.cutoff_score[0]}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      cutoff_score: [parseInt(e.target.value), formData.cutoff_score[1]]
+                    })}
+                    className="mt-1"
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="cutoff-high">Cutoff Score for High (in %)</Label>
+                  <Input
+                    id="cutoff-high"
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={formData.cutoff_score[1]}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      cutoff_score: [formData.cutoff_score[0], parseInt(e.target.value)]
+                    })}
+                    className="mt-1"
+                    required
+                  />
+                </div>
               </div>
               
               {/* Evaluation Criteria */}

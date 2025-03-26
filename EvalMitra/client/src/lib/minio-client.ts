@@ -16,6 +16,25 @@ export interface Hackathon {
   createdAt: string;
 }
 
+// export interface Submission {
+//   id: number;
+//   hackathonId: number;
+//   teamName: string;
+//   originalFile: string;
+//   fileType: string;
+//   content: string | null;
+//   score: number | null;
+//   rank: number | null;
+//   justification: string | null;
+//   criteriaScores: Record<string, number> | null;
+//   summary: string | null;
+//   keywords: string[] | null;
+//   strengths: string[] | null;
+//   weaknesses: string[] | null;
+//   processed: boolean;
+//   evaluated: boolean;
+// }
+
 export interface Submission {
   id: number;
   hackathonId: number;
@@ -25,8 +44,9 @@ export interface Submission {
   content: string | null;
   score: number | null;
   rank: number | null;
-  justification: string | null;
-  criteriaScores: Record<string, number> | null;
+  justification: Record<string, string> | null;
+  criteriaScores: Record<string, number>  | null;
+  oldCriteriaScores: Record<string, number>| null;
   summary: string | null;
   keywords: string[] | null;
   strengths: string[] | null;
@@ -50,6 +70,8 @@ export async function getAllHackathons(): Promise<Hackathon[]> {
 
 // Get hackathon by ID
 export async function getHackathon(id: number): Promise<Hackathon> {
+  alert(id)
+  console.log("id",id)
   const response = await apiRequest('GET', `/api/hackathons/${id}`);
   return response.json();
 }
@@ -74,6 +96,7 @@ export async function startEvaluation(id: number): Promise<{ message: string, ha
 
 // Get all submissions for a hackathon
 export async function getSubmissionsByHackathon(hackathonId: number): Promise<Submission[]> {
+  console.log("called /api/hackathons/${hackathonId}/submissions ")
   const response = await apiRequest('GET', `/api/hackathons/${hackathonId}/submissions`);
   return response.json();
 }

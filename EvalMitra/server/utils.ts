@@ -1,16 +1,36 @@
 import axios from 'axios';
-import { Criteria, Submission } from '@shared/schema';
+import { Submission } from '@/lib/minio-client';
+import { Criteria } from '@shared/schema';
+// interface ProcessedSubmission {
+//   teamName: string;
+//   score: number;
+//   rank: number;
+//   justification: string;
+//   criteriaScores: Record<string, number>;
+//   summary: string;
+//   keywords: string[];
+//   strengths: string[];
+//   weaknesses: string[];
+// }
 
 interface ProcessedSubmission {
+  id: number;
+  hackathonId: number;
   teamName: string;
+  originalFile: string;
+  fileType: string;
+  content: string;
   score: number;
   rank: number;
-  justification: string;
+  justification: Record<string, string>;
   criteriaScores: Record<string, number>;
+  oldCriteriaScores: Record<string, number>;
   summary: string;
   keywords: string[];
   strengths: string[];
   weaknesses: string[];
+  processed: boolean;
+  evaluated: boolean;
 }
 
 // Process non-text files using API (placeholder for now)
@@ -38,77 +58,153 @@ export async function processNonTextFile(fileType: string, fileBuffer: Buffer): 
   }
 }
 
-// Rank submissions using API (placeholder for now)
+// // Rank submissions using API (placeholder for now)
+// export async function rankSubmissions(
+//   submissions: { teamName: string, content: string }[],
+//   criteria: Criteria[]
+// ): Promise<ProcessedSubmission[]> {
+//   try {
+//     // This would be the actual API call to rank submissions
+//     // For now, we'll generate placeholder rankings
+    
+//     // Simulate API processing time
+//     await new Promise(resolve => setTimeout(resolve, 1000));
+    
+//     // Generate dummy rankings
+//     const rankedSubmissions = submissions.map((submission, index) => {
+//       // Create random scores that decrease with index (to simulate ranking)
+//       const baseScore = Math.max(60, 95 - (index * 3) + (Math.random() * 5));
+      
+//       // Generate criteria scores
+//       const criteriaScores: Record<string, number> = {};
+//       criteria.forEach(criterion => {
+//         // Random variation around the base score
+//         criteriaScores[criterion.name] = Math.min(
+//           10, 
+//           Math.max(1, (baseScore / 10) + (Math.random() * 2 - 1))
+//         );
+//       });
+      
+//       // Generate random keywords based on content
+//       const keywords = ['innovation', 'technology', 'solution', 'design', 'user experience']
+//         .sort(() => Math.random() - 0.5)
+//         .slice(0, 3 + Math.floor(Math.random() * 3));
+      
+//       // Generate random strengths and weaknesses
+//       const strengths = [
+//         'Clear problem definition',
+//         'Innovative solution approach',
+//         'Well-designed user interface',
+//         'Thorough documentation',
+//         'Technical complexity'
+//       ].sort(() => Math.random() - 0.5).slice(0, 2 + Math.floor(Math.random() * 2));
+      
+//       const weaknesses = [
+//         'Limited scope',
+//         'Performance issues',
+//         'Incomplete implementation',
+//         'Lacks proper error handling',
+//         'Minimal testing'
+//       ].sort(() => Math.random() - 0.5).slice(0, 1 + Math.floor(Math.random() * 2));
+      
+//       return {
+//         teamName: submission.teamName,
+//         score: Math.round(baseScore),
+//         rank: index + 1,
+//         justification: `The submission demonstrated ${strengths.join(', ').toLowerCase()} but had ${weaknesses.join(', ').toLowerCase()}. Overall score reflects the balance of strengths versus areas for improvement.`,
+//         criteriaScores,
+//         summary: `A ${Math.random() > 0.5 ? 'comprehensive' : 'focused'} solution that addresses the hackathon theme with ${Math.random() > 0.5 ? 'innovative' : 'practical'} approaches.`,
+//         keywords,
+//         strengths,
+//         weaknesses
+//       };
+//     });
+    
+//     return rankedSubmissions.sort((a, b) => b.score - a.score).map((submission, index) => ({
+//       ...submission,
+//       rank: index + 1
+//     }));
+//   } catch (error) {
+//     console.error('Error ranking submissions:', error);
+//     throw error;
+//   }
+// }
+
 export async function rankSubmissions(
-  submissions: { teamName: string, content: string }[],
+  submissions: Submission[],
   criteria: Criteria[]
 ): Promise<ProcessedSubmission[]> {
   try {
-    // This would be the actual API call to rank submissions
-    // For now, we'll generate placeholder rankings
-    
-    // Simulate API processing time
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Generate dummy rankings
-    const rankedSubmissions = submissions.map((submission, index) => {
-      // Create random scores that decrease with index (to simulate ranking)
-      const baseScore = Math.max(60, 95 - (index * 3) + (Math.random() * 5));
-      
-      // Generate criteria scores
-      const criteriaScores: Record<string, number> = {};
-      criteria.forEach(criterion => {
-        // Random variation around the base score
-        criteriaScores[criterion.name] = Math.min(
-          10, 
-          Math.max(1, (baseScore / 10) + (Math.random() * 2 - 1))
-        );
+
+    // Compute weighted scores for each submission
+    const scoredSubmissions = submissions.map((submission) => {
+      let totalWeight = 0;
+      let weightedScoreSum = 0;
+
+      // Compute weighted sum
+      criteria.forEach(({ name, weightage }) => {
+        const criterionScore = submission.criteriaScores?.[name] ?? 0; // Default to 0 if missing
+        weightedScoreSum += criterionScore * weightage;
+        totalWeight += weightage;
       });
-      
-      // Generate random keywords based on content
-      const keywords = ['innovation', 'technology', 'solution', 'design', 'user experience']
-        .sort(() => Math.random() - 0.5)
-        .slice(0, 3 + Math.floor(Math.random() * 3));
-      
-      // Generate random strengths and weaknesses
-      const strengths = [
-        'Clear problem definition',
-        'Innovative solution approach',
-        'Well-designed user interface',
-        'Thorough documentation',
-        'Technical complexity'
-      ].sort(() => Math.random() - 0.5).slice(0, 2 + Math.floor(Math.random() * 2));
-      
-      const weaknesses = [
-        'Limited scope',
-        'Performance issues',
-        'Incomplete implementation',
-        'Lacks proper error handling',
-        'Minimal testing'
-      ].sort(() => Math.random() - 0.5).slice(0, 1 + Math.floor(Math.random() * 2));
-      
-      return {
-        teamName: submission.teamName,
-        score: Math.round(baseScore),
-        rank: index + 1,
-        justification: `The submission demonstrated ${strengths.join(', ').toLowerCase()} but had ${weaknesses.join(', ').toLowerCase()}. Overall score reflects the balance of strengths versus areas for improvement.`,
-        criteriaScores,
-        summary: `A ${Math.random() > 0.5 ? 'comprehensive' : 'focused'} solution that addresses the hackathon theme with ${Math.random() > 0.5 ? 'innovative' : 'practical'} approaches.`,
-        keywords,
-        strengths,
-        weaknesses
-      };
+
+      // Compute final weighted average score
+      const finalScore = totalWeight > 0 ? weightedScoreSum / totalWeight : 0;
+      submission.score = finalScore
+
+      return { submission, finalScore };
     });
-    
-    return rankedSubmissions.sort((a, b) => b.score - a.score).map((submission, index) => ({
-      ...submission,
-      rank: index + 1
+
+    // Sort submissions by weighted score in descending order
+    scoredSubmissions.sort((a, b) => b.finalScore - a.finalScore);
+
+    // Assign ranks based on sorted order
+    return scoredSubmissions.map(({ submission, finalScore }, index) => ({
+      id: submission.id,
+      hackathonId: submission.hackathonId,
+      teamName: submission.teamName,
+      originalFile: submission.originalFile,
+      fileType: submission.fileType,
+      content: submission.content ?? "",
+      score: Math.round(finalScore), // Store weighted score
+      rank: index + 1, // Assign rank based on sorted order
+      justification: submission.justification ?? {},
+      criteriaScores: submission.criteriaScores ?? {},
+      oldCriteriaScores: submission.oldCriteriaScores ?? {},
+      summary: submission.summary ?? "No summary provided.",
+      keywords: submission.keywords ?? [],
+      strengths: submission.strengths ?? [],
+      weaknesses: submission.weaknesses ?? [],
+      processed: submission.processed,
+      evaluated: submission.evaluated,
     }));
   } catch (error) {
-    console.error('Error ranking submissions:', error);
+    console.error("Error ranking submissions:", error);
     throw error;
   }
 }
+
+// function processSubmissions(submissions: Submission[]): ProcessedSubmission[] {
+//   return submissions.map((submission) => ({
+//     id: submission.id,
+//     hackathonId: submission.hackathonId,
+//     teamName: submission.teamName,
+//     originalFile: submission.originalFile,
+//     fileType: submission.fileType,
+//     content: submission.content ?? "", // Ensure non-null string
+//     score: submission.score ?? 0, // Default to 0 if null
+//     rank: submission.rank ?? 0, // Default to 0 if null
+//     justification: submission.justification ?? {}, // Default to empty object
+//     criteriaScores: submission.criteriaScores ?? {}, // Default to empty object
+//     oldCriteriaScores: submission.oldCriteriaScores ?? {}, // Default to empty object
+//     summary: submission.summary ?? "", // Ensure non-null string
+//     keywords: submission.keywords ?? [], // Ensure non-null array
+//     strengths: submission.strengths ?? [], // Ensure non-null array
+//     weaknesses: submission.weaknesses ?? [], // Ensure non-null array
+//     processed: submission.processed, // Boolean, no need for fallback
+//     evaluated: submission.evaluated, // Boolean, no need for fallback
+//   }));
+// }
 
 // Extract team name from filename pattern: <team_name>_<hackathon_name>.<format>
 export function extractTeamName(filename: string, hackathonName: string): string {

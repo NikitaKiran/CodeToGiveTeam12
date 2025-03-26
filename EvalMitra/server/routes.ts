@@ -1,6 +1,7 @@
 import express, { type Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+
 import { 
   insertHackathonSchema, 
   insertSubmissionSchema, 
@@ -12,7 +13,8 @@ import {
   getFileFromMinIO, 
   deleteFileFromMinIO, 
   saveJSONToMinIO, 
-  HACKATHON_BUCKET 
+  HACKATHON_BUCKET ,
+  getResults
 } from "./minio-client";
 import { 
   processNonTextFile, 
@@ -40,9 +42,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Get all hackathons
   apiRouter.get('/hackathons', async (req: Request, res: Response) => {
+    console.log(111111);
     try {
       const hackathons = await storage.getAllHackathons();
-      res.json(hackathons);
+      return res.json(hackathons);
     } catch (error) {
       handleError(res, error);
     }
@@ -124,14 +127,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Update status to evaluating
-      await storage.updateHackathonStatus(id, 'evaluating');
+      // await storage.updateHackathonStatus(id, 'evaluating');
       
       // Process starts asynchronously, return immediate response
-      res.json({ message: 'Evaluation process started', hackathonId: id });
+      // res.json({ message: 'Evaluation process started', hackathonId: id });
       
       // Start the evaluation process in the background
-      processHackathonSubmissions(hackathon.id, hackathon.name, hackathon.criteria)
+      let results;
+      results = processHackathonSubmissions(hackathon.id, hackathon.name, hackathon.criteria)
         .catch(error => console.error('Background evaluation process failed:', error));
+        res.json(results)
       
     } catch (error) {
       handleError(res, error);
@@ -140,14 +145,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Get all submissions for a hackathon
   apiRouter.get('/hackathons/:id/submissions', async (req: Request, res: Response) => {
+    console.log(222222);
     try {
+      console.log('IN try')
       const hackathonId = parseInt(req.params.id);
+      console.log("Waiting for getSubmissionsByHackathon")
       const submissions = await storage.getSubmissionsByHackathon(hackathonId);
-      res.json(submissions);
+      console.log("After getSubmissions")
+      console.log("submissions",submissions)
+      return res.json(submissions);
     } catch (error) {
+      console.log("Error");
       handleError(res, error);
     }
   });
+
+  apiRouter.get('')
   
 
   // Get a specific submission
@@ -214,73 +227,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     criteria: Criteria[]
   ): Promise<void> {
     try {
+
+      const results = await getResults(hackathonName);
+
       // 1. Find all submission files from MinIO
-      const submissionFiles = await getSubmissionFiles(hackathonName);
+      // const submissionFiles = await getSubmissionFiles(hackathonName);
       
-      if (submissionFiles.length === 0) {
+
+      if (results.length === 0) {
         console.log(`No submissions found for hackathon: ${hackathonName}`);
         return;
       }
-      
-      console.log(`Processing ${submissionFiles.length} submissions for ${hackathonName}`);
-      
-      // 2. Process each file
-      const processedSubmissions: { teamName: string, content: string }[] = [];
-      
-      for (const { bucket, objectName } of submissionFiles) {
-        try {
-          // Extract team name
-          const teamName = extractTeamName(objectName, hackathonName);
-          const fileType = getFileTypeFromBucket(bucket);
-          
-          // Get file content
-          const fileBuffer = await getFileFromMinIO(bucket, objectName);
-          
-          // Process content based on file type
-          let textContent: string;
-          
-          if (bucket === 'text-bucket') {
-            textContent = fileBuffer.toString('utf-8');
-          } else {
-            textContent = await processNonTextFile(fileType, fileBuffer);
-          }
-          
-          // Save as submission
-          const submission = await storage.createSubmission({
-            hackathonId,
-            teamName,
-            originalFile: objectName,
-            fileType,
-            content: textContent,
-          });
-          
-          // Add to processed list
-          processedSubmissions.push({
-            teamName,
-            content: textContent
-          });
-          
-          // Update submission as processed
-          await storage.updateSubmission(submission.id, { processed: true });
-          
-          // Delete the file after processing
-          await deleteFileFromMinIO(bucket, objectName);
-          
-        } catch (error) {
-          console.error(`Error processing submission ${objectName}:`, error);
-          // Continue with other submissions
-        }
-      }
-      
-      // 3. Rank all processed submissions
-      if (processedSubmissions.length > 0) {
-        const rankedResults = await rankSubmissions(processedSubmissions, criteria);
+
+      if (results.length > 0) {
+        const rankedResults = await rankSubmissions(results, criteria);
         
+        console.log("rankedResults length:",rankedResults.length)
         // 4. Update submissions with rankings and evaluation data
         for (const result of rankedResults) {
           // Find the submission by team name
           const submissions = await storage.getSubmissionsByHackathon(hackathonId);
           const submission = submissions.find(s => s.teamName === result.teamName);
+          
           
           if (submission) {
             await storage.updateSubmission(submission.id, {
@@ -299,8 +267,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // 5. Update hackathon status to completed
-      await storage.updateHackathonStatus(hackathonId, 'completed');
-      console.log(`Evaluation completed for hackathon: ${hackathonName}`);
+      // await storage.updateHackathonStatus(hackathonId, 'completed');
+      await storage.getAllResults(hackathonName);
+      // console.log(`Evaluation completed for hackathon: ${hackathonName}`);
       
     } catch (error) {
       console.error(`Failed to process hackathon submissions:`, error);

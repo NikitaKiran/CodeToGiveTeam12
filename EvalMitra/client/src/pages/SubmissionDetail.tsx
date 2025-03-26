@@ -143,59 +143,69 @@ export default function SubmissionDetail() {
         </TabsContent>
 
         <TabsContent value="feedback" className="mt-0">
-          <div className="bg-white shadow sm:rounded-lg overflow-hidden">
-            <div className="px-4 py-5 border-b border-gray-200 sm:px-6">
-              <h3 className="text-lg leading-6 font-medium text-gray-900">
-                Evaluation Feedback
-              </h3>
-            </div>
-            <div className="px-4 py-5 sm:p-6">
-              <div className="space-y-6">
-                <div>
-                  <h4 className="text-base font-medium text-gray-900">Justification</h4>
-                  <p className="mt-2 text-gray-700">
-                    {submission.justification || "No justification provided"}
-                  </p>
-                </div>
-
-                <div>
-                  <h4 className="text-base font-medium text-gray-900">Summary</h4>
-                  <p className="mt-2 text-gray-700">
-                    {submission.summary || "No summary available"}
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="rounded-md border border-green-200 p-4 bg-green-50">
-                    <h4 className="text-base font-medium text-green-800">Strengths</h4>
-                    {submission.strengths && submission.strengths.length > 0 ? (
-                      <ul className="mt-2 list-disc pl-5 space-y-1">
-                        {submission.strengths.map((strength, index) => (
-                          <li key={index} className="text-gray-700">{strength}</li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p className="mt-2 text-gray-600">No strengths identified</p>
-                    )}
+  <div className="bg-white shadow sm:rounded-lg overflow-hidden">
+    <div className="px-4 py-5 border-b border-gray-200 sm:px-6">
+      <h3 className="text-lg leading-6 font-medium text-gray-900">
+        Evaluation Feedback
+      </h3>
+    </div>
+    <div className="px-4 py-5 sm:p-6">
+      <div className="space-y-6">
+        {submission.oldCriteriaScores ? (
+          // Render old and new criteria scores
+          Object.entries(submission.oldCriteriaScores).map(([criteria, oldScore]) => (
+            <div 
+              key={criteria} 
+              className="bg-gray-50 rounded-lg p-4 border border-gray-200 flex items-center justify-between"
+            >
+              <div className="flex-grow pr-4">
+                <h4 className="text-base font-semibold text-gray-900 mb-2">{criteria}</h4>
+                <div className="flex items-center space-x-4">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm text-gray-600">Old Score:</span>
+                    <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm">
+                      {oldScore}
+                    </span>
                   </div>
-
-                  <div className="rounded-md border border-orange-200 p-4 bg-orange-50">
-                    <h4 className="text-base font-medium text-orange-800">Areas for Improvement</h4>
-                    {submission.weaknesses && submission.weaknesses.length > 0 ? (
-                      <ul className="mt-2 list-disc pl-5 space-y-1">
-                        {submission.weaknesses.map((weakness, index) => (
-                          <li key={index} className="text-gray-700">{weakness}</li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p className="mt-2 text-gray-600">No areas for improvement identified</p>
-                    )}
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm text-gray-600">New Score:</span>
+                    <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-sm">
+                      {submission.criteriaScores?.[criteria] || 'N/A'}
+                    </span>
                   </div>
                 </div>
+                <p className="mt-2 text-gray-700 text-sm">
+                  {submission.justification?.[criteria] || 'No justification provided'}
+                </p>
               </div>
             </div>
-          </div>
-        </TabsContent>
+          ))
+        ) : (
+          // Render current criteria scores
+          Object.entries(submission.criteriaScores || {}).map(([criteria, score]) => (
+            <div 
+              key={criteria} 
+              className="bg-gray-50 rounded-lg p-4 border border-gray-200 flex items-center justify-between"
+            >
+              <div className="flex-grow pr-4">
+                <h4 className="text-base font-semibold text-gray-900 mb-2">{criteria}</h4>
+                <div className="flex items-center space-x-2 mb-2">
+                  <span className="text-sm text-gray-600">Score:</span>
+                  <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm">
+                    {score}
+                  </span>
+                </div>
+                <p className="text-gray-700 text-sm">
+                  {submission.justification?.[criteria] || 'No justification provided'}
+                </p>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  </div>
+</TabsContent>
       </Tabs>
     </div>
   );
