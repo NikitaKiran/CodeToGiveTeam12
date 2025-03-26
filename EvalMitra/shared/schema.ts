@@ -99,6 +99,7 @@ export const insertSubmissionSchema = createInsertSchema(submissions).pick({
   weaknesses: true,
   processed: true,
   evaluated: true,
+  score: true,
 });
 
 export const updateSubmissionSchema = createInsertSchema(submissions).pick({

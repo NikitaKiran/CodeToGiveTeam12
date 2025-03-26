@@ -70,7 +70,7 @@ export async function getAllHackathons(): Promise<Hackathon[]> {
 
 // Get hackathon by ID
 export async function getHackathon(id: number): Promise<Hackathon> {
-  alert(id)
+
   console.log("id",id)
   const response = await apiRequest('GET', `/api/hackathons/${id}`);
   return response.json();

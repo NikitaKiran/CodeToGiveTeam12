@@ -59,8 +59,8 @@ export default function Dashboard() {
 
   // Calculate statistics
   const activeHackathons = hackathons?.filter(h => h.status !== 'completed')?.length || 0;
-  const totalSubmissions = hackathons?.length ? 
-    Math.floor(Math.random() * 50) + 10 : 0; // Placeholder since we don't track this yet
+
+  const totalSubmissions = 10; // Placeholder value
   const completedEvaluations = hackathons?.filter(h => h.status === 'completed')?.length || 0;
 
   // Sort hackathons by status and date (most recent first)
@@ -149,7 +149,7 @@ export default function Dashboard() {
                       <td className="px-6 py-4 w-1/3">
                         <div className="text-gray-500 truncate">{hackathon.theme}</div>
                       </td>
-                      <td className="px-6 py-4 text-center w-1/6">{Math.floor(Math.random() * 20) + 5}</td>
+                      <td className="px-6 py-4 text-center w-1/6">{5}</td>
                       <td className="px-6 py-4 text-center w-1/6">
                         <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${statusMap[hackathon.status]?.color}`}>
                           {statusMap[hackathon.status]?.label}

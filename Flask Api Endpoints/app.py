@@ -1,6 +1,7 @@
 import base64
 import json
 import requests
+import random
 import os
 import subprocess
 import io
@@ -413,7 +414,9 @@ def submit():
         "strengths": eval_result.get('pros', ''),
         "weaknesses": eval_result.get('cons', ''),
         "processed": True,
-        "evaluated": True
+        "evaluated": True,
+        "id": random.randint(1000, 9999),
+        "rank": random.randint(1, 10),
     }
     
     # Populate criteriaScores and justification

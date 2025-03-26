@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { Submission } from '@/lib/minio-client';
 import { Criteria } from '@shared/schema';
 // interface ProcessedSubmission {
@@ -133,7 +132,7 @@ export async function processNonTextFile(fileType: string, fileBuffer: Buffer): 
 export async function rankSubmissions(
   submissions: Submission[],
   criteria: Criteria[]
-): Promise<ProcessedSubmission[]> {
+): Promise<Submission[]> {
   try {
 
     // Compute weighted scores for each submission

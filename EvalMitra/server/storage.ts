@@ -4,6 +4,7 @@ Hackathon, InsertHackathon,
 } from '@shared/schema';
 import { saveJSONToMinIO, getJSONFromMinIO, HACKATHON_BUCKET,RESULT_BUCKET, getResults, getSubmissionFiles, getHackathons} from './minio-client';
 import { get } from 'http';
+import { rankSubmissions } from './utils';
 
 // Storage interface
 export interface IStorage {
@@ -117,6 +118,7 @@ export class MemStorage implements IStorage {
     // const hackathon = await this.getHackathon(hackathonId);
     // if (!hackathon) return;
     const dummySubmissions = await getResults(hackathonName);
+
     console.log('IN getAllResults()')
     if(!dummySubmissions)
       throw new Error(`No submissions found. Sorry!`);
@@ -139,6 +141,7 @@ export class MemStorage implements IStorage {
       await this.createSubmission(submission as InsertSubmission);
     }
   }
+
   
   // Submission methods
   async createSubmission(insertSubmission: InsertSubmission): Promise<Submission> {
@@ -155,7 +158,8 @@ export class MemStorage implements IStorage {
       score: hasDummyData && 'score' in insertSubmission ? insertSubmission.score as number | null : null,
       rank: hasDummyData && 'rank' in insertSubmission ? insertSubmission.rank as number | null : null,
       justification: hasDummyData && 'justification' in insertSubmission ? insertSubmission.justification as Record<string, string> | null : null,
-      criteriaScores: hasDummyData && 'criteriaScores' in insertSubmission ? insertSubmission.criteriaScores as Record<string, number> | null : null,
+      criteriaScores: insertSubmission.criteriaScores as Record<string, number> | null,
+      oldCriteriaScores: {},
       summary: hasDummyData && 'summary' in insertSubmission ? insertSubmission.summary as string | null : null,
       keywords: hasDummyData && 'keywords' in insertSubmission ? insertSubmission.keywords as string[] : null,
       strengths: hasDummyData && 'strengths' in insertSubmission ? insertSubmission.strengths as string[] : null,

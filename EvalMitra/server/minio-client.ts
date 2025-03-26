@@ -294,7 +294,7 @@ export async function getResults(hackathonName: string): Promise<Submission[]> {
                   typeof parsedData.justification === "object" && parsedData.justification !== null
                     ? parsedData.justification
                     : {},
-                criteriaScores: parsedData.scores || {},
+                criteriaScores: parsedData.criteriaScores || {},
                 oldCriteriaScores: parsedData.oldCriteriaScores || {},
                 summary: parsedData.summary || null,
                 keywords: parsedData.keywords || [],

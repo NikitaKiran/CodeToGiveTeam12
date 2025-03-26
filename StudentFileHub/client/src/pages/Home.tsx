@@ -59,7 +59,7 @@ const Home: React.FC = () => {
     console.log("uploadfile called")
     await uploadFile(file, activeFormat);
   
-    const hackathonId = 1; // Replace with actual hackathon ID
+    const hackathonId = 4; // Replace with actual hackathon ID
 
     // Fetch hackathon details
     const hackathonDetails = await getHackathon(hackathonId);
