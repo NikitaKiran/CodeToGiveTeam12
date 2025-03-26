@@ -124,18 +124,18 @@ export class MemStorage implements IStorage {
       throw new Error(`No submissions found. Sorry!`);
     console.log(dummySubmissions)
 
-    // this.submissions = new Map(
-    //   dummySubmissions.map((submission, index) => [index, submission])
+    // // this.submissions = new Map(
+    // //   dummySubmissions.map((submission, index) => [index, submission])
+    // // );
+    // this.submissions = new Map<number, Submission>(
+    //   dummySubmissions.map((submission) => [
+    //     submission.id,
+    //     {
+    //       ...submission,
+    //       justification: submission.justification ? JSON.stringify(submission.justification) : null, // ✅ Convert object to string
+    //     },
+    //   ])
     // );
-    this.submissions = new Map<number, Submission>(
-      dummySubmissions.map((submission) => [
-        submission.id,
-        {
-          ...submission,
-          justification: submission.justification ? JSON.stringify(submission.justification) : null, // ✅ Convert object to string
-        },
-      ])
-    );
     
     for (const submission of dummySubmissions) {
       await this.createSubmission(submission as InsertSubmission);
@@ -155,7 +155,8 @@ export class MemStorage implements IStorage {
       id,
       // Only use default nulls if not already provided
       content: insertSubmission.content || null,
-      score: hasDummyData && 'score' in insertSubmission ? insertSubmission.score as number | null : null,
+      score: 80,
+      // score: hasDummyData && 'score' in insertSubmission ? insertSubmission.score as number | null : null,
       rank: hasDummyData && 'rank' in insertSubmission ? insertSubmission.rank as number | null : null,
       justification: hasDummyData && 'justification' in insertSubmission ? insertSubmission.justification as Record<string, string> | null : null,
       criteriaScores: insertSubmission.criteriaScores as Record<string, number> | null,

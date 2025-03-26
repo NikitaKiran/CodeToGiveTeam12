@@ -59,7 +59,7 @@ const Home: React.FC = () => {
     console.log("uploadfile called")
     await uploadFile(file, activeFormat);
   
-    const hackathonId = 4; // Replace with actual hackathon ID
+    const hackathonId = 5; // Replace with actual hackathon ID
 
     // Fetch hackathon details
     const hackathonDetails = await getHackathon(hackathonId);
@@ -80,7 +80,7 @@ const Home: React.FC = () => {
       const formData = new FormData();
       formData.append("file", file);
       formData.append("fileType", activeFormat);
-      formData.append("theme", hackathonDetails.theme);
+      formData.append("theme", hackathonDetails.theme + ". " + hackathonDetails.description);
       formData.append("criteria", JSON.stringify(hackathonDetails.criteria));
       formData.append("hackathonId", String(hackathonId));
 
