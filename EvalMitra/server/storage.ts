@@ -118,11 +118,12 @@ export class MemStorage implements IStorage {
     // const hackathon = await this.getHackathon(hackathonId);
     // if (!hackathon) return;
     const dummySubmissions = await getResults(hackathonName);
+    const sortedSubmissions = rankSubmissions(dummySubmissions);
 
     console.log('IN getAllResults()')
-    if(!dummySubmissions)
+    if(!sortedSubmissions)
       throw new Error(`No submissions found. Sorry!`);
-    console.log(dummySubmissions)
+    console.log(sortedSubmissions)
 
     // // this.submissions = new Map(
     // //   dummySubmissions.map((submission, index) => [index, submission])
@@ -136,8 +137,9 @@ export class MemStorage implements IStorage {
     //     },
     //   ])
     // );
+    this.submissions = new Map();
     
-    for (const submission of dummySubmissions) {
+    for (const submission of sortedSubmissions) {
       await this.createSubmission(submission as InsertSubmission);
     }
   }
@@ -155,8 +157,8 @@ export class MemStorage implements IStorage {
       id,
       // Only use default nulls if not already provided
       content: insertSubmission.content || null,
-      score: 80,
-      // score: hasDummyData && 'score' in insertSubmission ? insertSubmission.score as number | null : null,
+   
+      score: hasDummyData && 'score' in insertSubmission ? insertSubmission.score as number | null : 0,
       rank: hasDummyData && 'rank' in insertSubmission ? insertSubmission.rank as number | null : null,
       justification: hasDummyData && 'justification' in insertSubmission ? insertSubmission.justification as Record<string, string> | null : null,
       criteriaScores: insertSubmission.criteriaScores as Record<string, number> | null,

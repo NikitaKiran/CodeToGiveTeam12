@@ -12,7 +12,6 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
   const navigation = [
     { name: 'Dashboard', href: '/', icon: 'ri-dashboard-line' },
     { name: 'Hackathons', href: '/hackathons', icon: 'ri-trophy-line' },
-    { name: 'Evaluations', href: '/evaluations', icon: 'ri-file-list-3-line' },
   ];
 
   return (

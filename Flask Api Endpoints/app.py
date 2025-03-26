@@ -11,6 +11,10 @@ from flask_cors import CORS
 from pdf2image import convert_from_path
 from together import Together  # Ensure you have this module installed
 from minio import Minio
+import cv2, tempfile
+from skimage.metrics import structural_similarity as ssim
+from moviepy.video.io.VideoFileClip import VideoFileClip
+from faster_whisper import WhisperModel
 
 app = Flask(__name__)
 CORS(app)
@@ -100,6 +104,101 @@ def store_result_in_minio(filename, data):
         length=len(json_data),
         content_type="application/json"
     )
+def process_video_file(file_obj):
+    """
+    Process an uploaded video file:
+      - Extract keyframe descriptions (using OpenRouter for frame analysis)
+      - Perform audio transcription (using Whisper)
+    Returns a dictionary with the results.
+    """
+    # Save the video file locally
+    filename = file_obj.filename
+    local_path = f"./{filename}"
+    file_obj.save(local_path)
+
+    
+
+    # Helper: convert a frame to a base64-encoded JPEG data URL
+    def frame_to_base64(frame):
+        _, buffer = cv2.imencode('.jpg', frame)
+        base64_image = base64.b64encode(buffer).decode('utf-8')
+        return f"data:image/jpeg;base64,{base64_image}"
+
+    # Helper: get a description of a frame by calling OpenRouter
+    def get_image_description(image_data_url):
+        TEXT = "Describe this frame in detail."
+        response = requests.post(
+            url="https://openrouter.ai/api/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+                "Content-Type": "application/json",
+            },
+            data=json.dumps({
+                "model": "mistralai/mistral-small-3.1-24b-instruct:free",
+                "messages": [
+                    {"role": "user", "content": [
+                        {"type": "text", "text": TEXT},
+                        {"type": "image_url", "image_url": {"url": image_data_url}},
+                    ]}
+                ],
+            }),
+        )
+        try:
+            result = response.json()
+            return result["choices"][0]["message"]["content"]
+        except Exception as e:
+            return f"Error in image description: {e}"
+
+    # Open the video using OpenCV
+    cap = cv2.VideoCapture(local_path)
+    fps = cap.get(cv2.CAP_PROP_FPS)
+    frame_interval = int(fps * 2)  # process a frame every 2 seconds
+    prev_gray = None
+    ssim_threshold = 0.8
+    keyframe_descriptions = []
+    frame_num = 0
+
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            break
+
+        if frame_num % frame_interval == 0:
+            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            if prev_gray is None:
+                image_data_url = frame_to_base64(frame)
+                desc = get_image_description(image_data_url)
+                keyframe_descriptions.append(desc)
+                prev_gray = gray
+            else:
+                score, _ = ssim(prev_gray, gray, full=True)
+                if score < ssim_threshold:
+                    image_data_url = frame_to_base64(frame)
+                    desc = get_image_description(image_data_url)
+                    keyframe_descriptions.append(desc)
+                    prev_gray = gray
+        frame_num += 1
+    cap.release()
+
+    # --- Audio Transcription ---
+    video_clip = VideoFileClip(local_path)
+    with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as temp_audio:
+        video_clip.audio.write_audiofile(temp_audio.name, logger=None)
+        temp_audio_path = temp_audio.name
+
+    model = WhisperModel("medium")
+    result, _ = model.transcribe(temp_audio_path)
+    transcription = " ".join([segment.text for segment in result])
+    os.remove(temp_audio_path)
+    os.remove(local_path)
+
+    # Return the combined video analysis results
+    return {
+        "keyframe_descriptions": keyframe_descriptions,
+        "audio_transcription": transcription
+    }
+
+
 
 def process_file(file_obj, file_type):
     """
@@ -147,6 +246,14 @@ def process_file(file_obj, file_type):
             os.remove(image_path)
             prompt_text = ("What's in this image? Don't include any information irrelevant to the main content.")
             extracted_texts.append(analyze_with_openrouter(prompt_text, image_data_url))
+        elif file_type == "video":
+            # Process the video using the helper function
+            result = process_video_file(file_obj)
+            # Format the output similar to the other file types
+            keyframes_text = "Keyframe Descriptions:\n" + "\n".join(result.get("keyframe_descriptions", []))
+            audio_text = "Audio Transcription:\n" + result.get("audio_transcription", "")
+            extracted_texts.append(keyframes_text)
+            extracted_texts.append(audio_text)
         else:
             return None, f"Unsupported file type: {file_type}"
     except Exception as e:
@@ -379,12 +486,17 @@ def submit():
     file_type = request.form.get("fileType")
     theme = request.form.get("theme")
     criteria_str = request.form.get("criteria")
+    criteria_dict = {}
+    if criteria_str:
+          # Ensure it's not None
+        criteria_dict = json.loads(criteria_str)
     team_name = file_obj.filename.split('_')[0]
     hackathon_id = request.form.get("hackathonId")
+
     
     if not file_type or not theme or not criteria_str:
         return jsonify({"error": "Missing required fields: fileType, theme, or criteria"}), 400
-    
+    print(criteria_dict)
     try:
         criteria = json.loads(criteria_str)
     except Exception as e:
@@ -417,17 +529,21 @@ def submit():
         "processed": True,
         "evaluated": True,
         "id": random.randint(1000, 9999),
-        "rank": random.randint(1, 10),
+        "score": 0
     }
     
     # Populate criteriaScores and justification
     if eval_result.get('scores'):
         for criterion, score_info in eval_result['scores'].items():
            
-                submission_data['criteriaScores'][criterion.lower()] = int(score_info[0].split('/')[0])
-                submission_data['justification'][criterion.lower()] = score_info[1]
+                submission_data['criteriaScores'][criterion] = int(score_info[0].split('/')[0])
+                submission_data['justification'][criterion] = score_info[1]
           
-  
+    score = 0
+    for c in criteria_dict:
+        category = c['name']
+        score += submission_data['criteriaScores'][category] * c['weightage']
+    submission_data['score'] = score//10
     name_without_ext = os.path.splitext(file_obj.filename)[0]
     file_name = f"submission_{name_without_ext}_{submission_data['hackathonId']}.json"
     result_bytes = json.dumps(submission_data).encode("utf-8")

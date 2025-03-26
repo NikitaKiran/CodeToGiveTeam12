@@ -129,44 +129,28 @@ export async function processNonTextFile(fileType: string, fileBuffer: Buffer): 
 //   }
 // }
 
-export async function rankSubmissions(
-  submissions: Submission[],
-  criteria: Criteria[]
-): Promise<Submission[]> {
+export function rankSubmissions(
+  submissions: Submission[]
+): Submission[] {
   try {
-
-    // Compute weighted scores for each submission
-    const scoredSubmissions = submissions.map((submission) => {
-      let totalWeight = 0;
-      let weightedScoreSum = 0;
-
-      // Compute weighted sum
-      criteria.forEach(({ name, weightage }) => {
-        const criterionScore = submission.criteriaScores?.[name] ?? 0; // Default to 0 if missing
-        weightedScoreSum += criterionScore * weightage;
-        totalWeight += weightage;
-      });
-
-      // Compute final weighted average score
-      const finalScore = totalWeight > 0 ? weightedScoreSum / totalWeight : 0;
-      submission.score = finalScore
-
-      return { submission, finalScore };
-    });
-
     // Sort submissions by weighted score in descending order
-    scoredSubmissions.sort((a, b) => b.finalScore - a.finalScore);
+    submissions.sort((a, b) => b.score! - a.score!);
 
-    // Assign ranks based on sorted order
-    return scoredSubmissions.map(({ submission, finalScore }, index) => ({
+    // Assign ranks, ensuring submissions with the same score have the same rank
+    let currentRank = 1;
+    return submissions.map((submission, index) => {
+      if (index > 0 && submissions[index].score !== submissions[index - 1].score) {
+      currentRank = index + 1;
+      }
+      return {
       id: submission.id,
       hackathonId: submission.hackathonId,
       teamName: submission.teamName,
       originalFile: submission.originalFile,
       fileType: submission.fileType,
       content: submission.content ?? "",
-      score: Math.round(finalScore), // Store weighted score
-      rank: index + 1, // Assign rank based on sorted order
+      score: submission.score, // Store weighted score
+      rank: currentRank, // Assign rank based on score
       justification: submission.justification ?? {},
       criteriaScores: submission.criteriaScores ?? {},
       oldCriteriaScores: submission.oldCriteriaScores ?? {},
@@ -174,10 +158,11 @@ export async function rankSubmissions(
       keywords: submission.keywords ?? [],
       strengths: submission.strengths ?? [],
       weaknesses: submission.weaknesses ?? [],
-      processed: submission.processed,
-      evaluated: submission.evaluated,
-    }));
-  } catch (error) {
+      processed: true,
+      evaluated: true,
+      };
+    });
+    } catch (error) {
     console.error("Error ranking submissions:", error);
     throw error;
   }

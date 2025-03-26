@@ -63,7 +63,7 @@ export default function SubmissionDetail() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setLocation('/evaluations')}
+                  onClick={() => setLocation('/')}
                 >
                   Back to Evaluations
                 </Button>

@@ -185,20 +185,20 @@ export default function Dashboard() {
             <Button 
               variant="outline" 
               className="w-full justify-start" 
-              onClick={() => navigate('/evaluations')}
+              onClick={() => navigate('/hackathons')}
             >
               <i className="ri-file-list-3-line mr-2"></i>
               Continue Evaluation
             </Button>
             
-            <Button 
+            {/* <Button 
               variant="outline" 
               className="w-full justify-start bg-gray-100 hover:bg-gray-200 text-gray-700"
               disabled
             >
               <i className="ri-download-line mr-2"></i>
               Export Reports
-            </Button>
+            </Button> */}
           </div>
         </div>
       </div>

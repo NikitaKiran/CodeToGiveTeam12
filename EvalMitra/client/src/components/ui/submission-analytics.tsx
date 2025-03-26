@@ -127,7 +127,7 @@ export default function SubmissionAnalytics({ submission }: SubmissionAnalyticsP
             <div className="flex flex-wrap gap-2">
               {submission.keywords && submission.keywords.map((keyword, index) => (
                 <Badge key={index} className="bg-primary-100 text-primary-700 hover:bg-primary-200">
-                  {keyword}
+                 {keyword.replace(/\]$/, "")}
                 </Badge>
               ))}
               {(!submission.keywords || submission.keywords.length === 0) && (
@@ -163,9 +163,12 @@ export default function SubmissionAnalytics({ submission }: SubmissionAnalyticsP
           <CardContent>
             {submission.strengths && submission.strengths.length > 0 ? (
               <ul className="list-disc pl-5 space-y-1">
-                {submission.strengths.map((strength, index) => (
-                  <li key={index} className="text-gray-700">{strength}</li>
-                ))}
+                {submission.strengths
+      .map((strength) => strength.replace(/\]$/, "").trim()) // Remove trailing ] and trim whitespace
+      .filter((strength) => strength !== "") // Remove empty values
+      .map((strength, index) => (
+        <li key={index} className="text-gray-700">{strength}</li>
+      ))}
               </ul>
             ) : (
               <p className="text-gray-500 text-sm">No strengths identified</p>
@@ -183,9 +186,12 @@ export default function SubmissionAnalytics({ submission }: SubmissionAnalyticsP
           <CardContent>
             {submission.weaknesses && submission.weaknesses.length > 0 ? (
               <ul className="list-disc pl-5 space-y-1">
-                {submission.weaknesses.map((weakness, index) => (
-                  <li key={index} className="text-gray-700">{weakness}</li>
-                ))}
+                {submission.weaknesses
+      .map((weakness) => weakness.replace(/\]$/, "").trim()) // Remove trailing ] and trim whitespace
+      .filter((weakness) => weakness !== "") // Remove empty values
+      .map((weakness, index) => (
+        <li key={index} className="text-gray-700">{weakness}</li>
+      ))}
               </ul>
             ) : (
               <p className="text-gray-500 text-sm">No improvement areas identified</p>
