@@ -33,7 +33,7 @@ export default function Hackathons() {
       //   description: `Processing submissions for ${evaluatingHackathon.name}`,
       // });
       setEvaluatingHackathon(null);
-      navigate(`/evaluations/${evaluatingHackathon.id}`);
+      // navigate(`/evaluations/${evaluatingHackathon.id}`);
       refetch();
     } catch (error) {
       toast({
@@ -168,10 +168,11 @@ export default function Hackathons() {
                           </Button>
                         ) : (
                           <Button
-                            onClick={() => setEvaluatingHackathon({ id: hackathon.id, name: hackathon.name })}
+                            // onClick={() => setEvaluatingHackathon({ id: hackathon.id, name: hackathon.name })}
+                            onClick={() => navigate(`/evaluations/${hackathon.id}`)}
                             size="sm"
                           >
-                            Evaluate
+                            View Results
                           </Button>
                         )}
                       </div>
@@ -227,10 +228,10 @@ export default function Hackathons() {
       <Dialog open={!!evaluatingHackathon} onOpenChange={(open) => !open && setEvaluatingHackathon(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Start Evaluation</DialogTitle>
+            <DialogTitle>View Results</DialogTitle>
             <DialogDescription>
-              Are you sure you want to start the evaluation process for <span className="font-medium">{evaluatingHackathon?.name}</span>? 
-              This will process all the submissions and may take some time.
+              Do you want to view the evaluation for <span className="font-medium">{evaluatingHackathon?.name}</span>? 
+              This will display all processed submissions.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -238,7 +239,7 @@ export default function Hackathons() {
               Cancel
             </Button>
             <Button onClick={startEvaluationProcess}>
-              Start Evaluation
+              Continue
             </Button>
           </DialogFooter>
         </DialogContent>
