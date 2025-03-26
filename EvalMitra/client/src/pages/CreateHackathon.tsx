@@ -190,7 +190,7 @@ export default function CreateHackathon() {
                       <Button
                         variant={"outline"}
                         className={cn(
-                          "w-full justify-start text-left font-normal",
+                          "w-full justify-start text-left font-normal bg-white",
                           !formData.start_date && "text-muted-foreground"
                         )}
                       >
@@ -220,7 +220,7 @@ export default function CreateHackathon() {
                       <Button
                         variant={"outline"}
                         className={cn(
-                          "w-full justify-start text-left font-normal",
+                          "w-full justify-start text-left font-normal bg-white",
                           !formData.end_date && "text-muted-foreground"
                         )}
                       >
