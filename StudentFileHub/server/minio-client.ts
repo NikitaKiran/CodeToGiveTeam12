@@ -154,3 +154,28 @@ export async function deleteFileFromMinIO(
     throw error;
   }
 }
+
+export async function getAllHackathons(filterActiveOnly: boolean = false): Promise<any[]> {
+  const hackathons: any[] = [];
+  const objectsStream = minioClient.listObjects(HACKATHON_BUCKET, '', true);
+  const now = new Date();
+
+  for await (const obj of objectsStream) {
+    try {
+      const data = await getJSONFromMinIO(HACKATHON_BUCKET, obj.name);
+      if (!filterActiveOnly) {
+        hackathons.push(data);
+      } else {
+        const start = new Date(data.start_date);
+        const end = new Date(data.end_date);
+        if (start <= now && now <= end) {
+          hackathons.push(data);
+        }
+      }
+    } catch (err) {
+      console.warn(`Skipping invalid hackathon JSON: ${obj.name}`);
+    }
+  }
+
+  return hackathons;
+}

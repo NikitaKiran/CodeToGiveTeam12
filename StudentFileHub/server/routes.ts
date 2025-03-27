@@ -12,6 +12,7 @@ import fetch from "node-fetch";
 import FormData from "form-data";
 import { storage } from "./storage";
 import { ZodError } from "zod";
+import { getAllHackathons } from './minio-client';
 
 const router = express.Router();
 
@@ -307,6 +308,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  router.get('/hackathons/active', async (req, res) => {
+    try {
+      const hackathons = await getAllHackathons(true); // filterActiveOnly = true
+      res.json(hackathons);
+    } catch (error) {
+      console.error('Error fetching active hackathons:', error);
+      res.status(500).json({ message: 'Failed to fetch hackathons' });
+    }
+  });
+  
   // Get a hackathon by ID
   //changed from router to app
   router.get('/hackathons/:id', async (req, res) => {

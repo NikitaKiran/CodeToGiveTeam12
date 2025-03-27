@@ -210,8 +210,8 @@ export default function EvaluationResults() {
               hackathonId={hackathonId}
               onSelectSubmission={(id) => navigate(`/submissions/${id}`)}
               filterCount={filterCount}
-              midcutoff={hackathon.cutoff_score[0]}
-              highcutoff={hackathon.cutoff_score[1]}
+              midcutoff={hackathon.cutoff_score?.[0] || 30}
+              highcutoff={hackathon.cutoff_score?.[1] || 60}
               categories={selectedCategories}
             />
           </div>
