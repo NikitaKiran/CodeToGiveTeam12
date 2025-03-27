@@ -22,8 +22,8 @@ CORS(app)
 # --------------------------
 # Configuration
 # --------------------------
-OPENROUTER_API_KEY = "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"
-TOGETHER_API_KEY = "094ad5f71e654a605fb914359d9cda2f11e66f55e00d8d9ffc416d90d11fd723"
+OPENROUTER_API_KEY = "API_KEY"
+TOGETHER_API_KEY = "API_KEY"
 OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions"
 
 # Initialize Together API client
