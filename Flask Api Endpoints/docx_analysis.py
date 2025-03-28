@@ -9,7 +9,7 @@ from pdf2image import convert_from_path
 app = Flask(__name__)
 
 #API Key for OpenRouter
-API_KEY = "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"
+API_KEY = "API_KEY"
 
 #Function to convert DOCX to PDF
 def convert_docx_to_pdf(docx_path, pdf_path):
