@@ -120,7 +120,7 @@ export default function CreateHackathon() {
     createHackathonMutation.mutate({
       ...formData,
       criteria: criteriaList,
-      status: 'not_started'
+      status: 'in_progress'
     });
   };
   

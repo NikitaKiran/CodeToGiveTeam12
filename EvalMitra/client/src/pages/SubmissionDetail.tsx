@@ -7,6 +7,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import SubmissionAnalytics from '@/components/ui/submission-analytics';
 import { sub } from 'date-fns';
+import FileViewer from "@/components/FileViewer";
+import PDFViewer from "../components/PDFViewer";
 
 export default function SubmissionDetail() {
   const [, setLocation] = useLocation();
@@ -124,7 +126,7 @@ export default function SubmissionDetail() {
         </TabsContent>
 
         <TabsContent value="submission" className="mt-0">
-          <div className="bg-white shadow sm:rounded-lg overflow-hidden">
+          <div className="bg-white shadow sm:rounded-lg overflow">
             <div className="px-4 py-5 border-b border-gray-200 sm:px-6">
               <h3 className="text-lg leading-6 font-medium text-gray-900">
                 Original Submission
@@ -134,12 +136,24 @@ export default function SubmissionDetail() {
               </p>
             </div>
             <div className="px-4 py-5 sm:p-6">
-              <div className="prose max-w-none bg-gray-50 p-4 rounded-md">
-                <pre className="whitespace-pre-wrap break-words text-sm">
-                  {submission.content || "No content available for preview"}
-                </pre>
-              </div>
+              {/* <div className="prose max-w-none bg-gray-50 p-4 rounded-md">
+              <object data="https://teal-kimberlyn-20.tiiny.site/" type="application/pdf" width="100%" height="100%">
+            </object>
+              </div> */}
+              <div className="prose max-w-none bg-gray-50 p-4 rounded-md h-[80vh]">
+  <object
+    data="https://teal-kimberlyn-20.tiiny.site/"
+    type="application/pdf"
+    className="w-full h-full"
+  >
+    Your browser does not support PDFs.
+  </object>
+</div>
+
             </div>
+          </div>
+          <div>
+            
           </div>
         </TabsContent>
 

@@ -99,6 +99,8 @@ const Home: React.FC = () => {
     }
 
     const selectedHackathon = activeHackathons.find(h => String(h.id) === selectedHackathonId);
+
+    const hackathonId = 2; // Replace with actual hackathon ID
     
     if (!selectedHackathon) {
       toast({ 
