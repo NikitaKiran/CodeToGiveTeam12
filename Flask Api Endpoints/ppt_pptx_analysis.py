@@ -9,7 +9,7 @@ import subprocess
 app = Flask(__name__)
 
 # API Key for OpenRouter
-API_KEY = "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"
+API_KEY = "API_KEY"
 
 def convert_ppt_to_pdf(ppt_path, pdf_path):
     """ Convert PPTX/PPT to PDF using unoconv (Linux) """
